@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mantafrog Tools</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #0f172a; color: #f8fafc; }
+        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        .card { background: #1e293b; border-radius: 16px; max-width: 900px; width: 100%; padding: 48px; box-shadow: 0 20px 60px rgba(15,23,42,0.4); }
+        h1 { font-size: 42px; margin-bottom: 16px; }
+        p.desc { color: #cbd5f5; margin-bottom: 32px; line-height: 1.6; }
+        .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        a.tool-link { text-decoration: none; padding: 24px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.3); color: inherit; background: rgba(148,163,184,0.08); transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        a.tool-link:hover { transform: translateY(-4px); border-color: #38bdf8; }
+        .tool-title { font-size: 22px; font-weight: 600; margin-bottom: 12px; color: #e2e8f0; }
+        .tool-desc { color: #cbd5f5; font-size: 15px; line-height: 1.5; flex-grow: 1; }
+        .tool-meta { margin-top: 16px; font-size: 14px; color: #38bdf8; font-weight: 600; }
+        footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="card">
+            <h1>🏝 Mantafrog Tools</h1>
+            <p class="desc">石垣島クッキー屋のオペレーションを支えるツールセットです。下記のモジュールからお好きなツールにアクセスしてください。</p>
+            <div class="links">
+                <a class="tool-link" href="/production-plan/">
+                    <div>
+                        <div class="tool-title">🎯 生産計画システム</div>
+                        <div class="tool-desc">需要予測・在庫管理・大口注文の進捗を一元管理し、実際の生産指示に落とし込めます。</div>
+                    </div>
+                    <div class="tool-meta">Open production-plan →</div>
+                </a>
+                <a class="tool-link" href="/cost-calculation-tool/">
+                    <div>
+                        <div class="tool-title">💰 原価管理システム</div>
+                        <div class="tool-desc">材料・ロット別のコストとレシピを紐づけて、SKUごとの原価や最適な価格設定を算出します。</div>
+                    </div>
+                    <div class="tool-meta">Open cost calculator →</div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <footer>© 2025 Mantafrog Tools</footer>
+</body>
+</html>
