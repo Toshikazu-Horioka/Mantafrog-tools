@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石垣島クッキー屋 生産計画システム</title>
+    <style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc; color: #334155; font-size: 16px; }
+.container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+.header { background: linear-gradient(135deg, #475569 0%, #334155 100%); color: white; padding: 32px; text-align: center; }
+.header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 600; }
+.header p { margin: 0; opacity: 0.9; font-size: 18px; }
+.section { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 24px; overflow: hidden; }
+.section h2 { background: #f1f5f9; margin: 0; padding: 16px 20px; font-size: 20px; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+.section-content { padding: 20px; }
+.collapsible { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 24px; overflow: hidden; }
+.collapsible-header { background: #475569; color: white; padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; transition: background-color 0.2s; font-size: 16px; }
+.collapsible-header:hover { background: #334155; }
+.collapsible-content { padding: 20px; background: #ffffff; display: none; }
+.collapsible-content.open { display: block; }
+.toggle-icon { font-size: 18px; transition: transform 0.2s; }
+.toggle-icon.rotated { transform: rotate(180deg); }
+.compact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+.form-group { margin-bottom: 16px; }
+label { display: block; margin-bottom: 6px; font-weight: 500; color: #475569; font-size: 15px; }
+input, select { width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; box-sizing: border-box; transition: border-color 0.2s; }
+input:focus, select:focus { outline: none; border-color: #475569; box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15); }
+.btn { background: #475569; color: #ffffff; border: none; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; margin: 4px; transition: background-color 0.2s; }
+.btn:hover { background: #334155; }
+.btn-small { padding: 8px 14px; font-size: 14px; }
+.btn-danger { background: #991b1b; }
+.btn-danger:hover { background: #7f1d1d; }
+.btn-success { background: #14532d; }
+.btn-success:hover { background: #052e16; }
+.btn-warning { background: #a16207; }
+.btn-warning:hover { background: #78350f; }
+.table { width: 100%; border-collapse: collapse; margin: 0; }
+.table th, .table td { padding: 14px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+.table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 15px; }
+.result-box { background: #e2e8f0; padding: 18px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #475569; }
+.result-box h4 { margin-top: 0; color: #334155; font-size: 17px; }
+.result-box p { font-size: 15px; }
+.alert { padding: 18px; border-radius: 6px; margin: 16px 0; font-size: 15px; }
+.alert-success { background: #f0fdf4; color: #14532d; border: 1px solid #bbf7d0; }
+.alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.current-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 0; }
+.status-card { background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); text-align: center; color: #1e293b !important; }
+.status-number { font-size: 42px; font-weight: 700; color: #475569; }
+.status-label { color: #64748b; font-size: 15px; }
+.production-emergency { border: 3px solid #991b1b !important; }
+.production-emergency .status-number { color: #991b1b; }
+.production-needed { background-color: #fef3c7 !important; color: #92400e !important; font-weight: 600; }
+.low-stock { background-color: #fecaca !important; color: #991b1b !important; font-weight: 700; }
+.product-card { background: white; padding: 24px; margin: 16px 0; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; }
+.product-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; }
+.product-name { font-size: 20px; font-weight: 600; color: #1e293b; }
+.product-meta { color: #64748b; font-size: 15px; }
+.product-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; }
+.value-input-large { width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 18px; font-weight: 600; text-align: center; color: #1e293b; background: #f8fafc; box-sizing: border-box; }
+.historical-section { background: #f8fafc; border-radius: 8px; padding: 18px; margin-top: 16px; display: none; }
+.historical-section.open { display: block; }
+.historical-inputs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.week-input { width: 100%; padding: 10px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; text-align: center; box-sizing: border-box; }
+.calculate-btn { width: 100%; padding: 12px; background: #475569; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+.bulk-order-form { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+.product-selection { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+.product-item { background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.product-checkbox { margin: 0; transform: scale(1.3); }
+.same-date-section { background: #eff6ff; padding: 18px; border-radius: 8px; margin: 16px 0; border: 1px solid #bfdbfe; }
+.order-summary { background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px; font-size: 15px; }
+.bulk-order-card { background: white; padding: 20px; margin: 16px 0; border-radius: 12px; border: 1px solid #e2e8f0; }
+.client-name { font-size: 20px; font-weight: 600; color: #1e293b; }
+.urgency-badge { padding: 6px 10px; border-radius: 4px; font-size: 14px; font-weight: 500; }
+.urgency-urgent { background: #fecaca; color: #991b1b; }
+.urgency-warning { background: #fef3c7; color: #78350f; }
+.urgency-normal { background: #e0e7ff; color: #3730a3; }
+.export-controls { display: flex; gap: 8px; align-items: center; }
+.product-item input[type="checkbox"] { width: auto; }
+.add-product-form { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 16px 0; border: 1px solid #e2e8f0; }
+.editable-produced { width: 70px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; text-align: center; font-size: 14px; }
+.delivery-alert-section { background: linear-gradient(135deg, #991b1b, #7f1d1d); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #7f1d1d; }
+.delivery-alert-section h3 { margin: 0 0 12px 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
+.delivery-alert-item { background: rgba(255, 255, 255, 0.95); color: #7f1d1d; padding: 12px 16px; margin: 8px 0; border-radius: 6px; font-weight: 500; border-left: 4px solid #991b1b; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+.modal.show { display: block; }
+.modal-content { background-color: #fefefe; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+.modal-header h3 { margin: 0; font-size: 22px; color: #1e293b; }
+.modal-close { color: #94a3b8; font-size: 32px; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.2s; }
+.modal-close:hover { color: #475569; }
+.modal-body { margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.oven-card { background: white; padding: 20px; margin: 12px 0; border-radius: 8px; border: 1px solid #e2e8f0; }
+.oven-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
+.oven-name-input { border: none; background: transparent; font-size: 18px; font-weight: 600; color: #334155; width: 200px; padding: 4px; }
+.oven-name-input:focus { border-bottom: 2px solid #475569; outline: none; }
+.oven-settings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏝️ 石垣島クッキー屋 生産計画システム</h1>
+            <p>観光需要に対応した精密な生産管理</p>
+        </div>
+
+        <div class="section">
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🎯 今日の生産指示</span>
+                <div class="export-controls">
+                    <button class="btn btn-small" onclick="toggleCollapsible('weeklyPlan')">📋 週次生産計画</button>
+                    <button class="btn btn-small" onclick="toggleCollapsible('monthlyOrders')">📆 月次大口注文一覧</button>
+                </div>
+            </h2>
+            <div class="section-content">
+                <div id="deliveryAlertSection"></div>
+                <p style="color: #64748b; margin-bottom: 12px; font-size: 15px;">💡 通常需要(週6日配分) + 大口注文(30日均等配分)の合計値</p>
+                <div id="todayProduction" class="current-status"></div>
+            </div>
+        </div>
+
+        <div class="collapsible">
+            <div class="collapsible-header" onclick="toggleCollapsible('weeklyPlan')" style="display: none;">
+                <span>📋 週次生産計画</span>
+                <span class="toggle-icon" id="weeklyPlan-icon">▼</span>
+            </div>
+            <div class="collapsible-content" id="weeklyPlan-content">
+                <div class="export-controls" style="margin-bottom: 16px;">
+                    <button class="btn btn-success btn-small" onclick="updateAll()">🔄 全体を更新</button>
+                    <button class="btn btn-small" onclick="exportAllData()">💾 データ出力</button>
+                    <label class="btn btn-small" style="background: #14532d; cursor: pointer;">
+                        📁 データ読込
+                        <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                    </label>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>製品名</th>
+                            <th>現在在庫</th>
+                            <th>基準需要</th>
+                            <th>需要予測</th>
+                            <th>大口注文(次週分)</th>
+                            <th>合計需要</th>
+                            <th>生産計画</th>
+                            <th>生産個数</th>
+                            <th>週末予定在庫</th>
+                        </tr>
+                    </thead>
+                    <tbody id="planTableBody"></tbody>
+                </table>
+                <div id="capacityAlert"></div>
+            </div>
+        </div>
+
+        <div class="collapsible">
+            <div class="collapsible-header" onclick="toggleCollapsible('monthlyOrders')" style="display: none;">
+                <span>📆 月次大口注文一覧</span>
+                <span class="toggle-icon" id="monthlyOrders-icon">▼</span>
+            </div>
+            <div class="collapsible-content" id="monthlyOrders-content">
+                <p style="color: #64748b; margin-bottom: 16px;">💡 今後30日以内の全大口注文。各注文は納期までの日数で毎日均等配分されます。</p>
+                <div id="monthlyBulkOrderDetails"></div>
+            </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 24px; margin: 24px; border-radius: 12px; border: 2px solid #475569;">
+            <h2 style="color: #1e40af; margin: 0 0 16px 0; font-size: 20px;">📊 需要管理</h2>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('bulkOrders')">
+                    <span>📦 大口注文管理</span>
+                    <span class="toggle-icon" id="bulkOrders-icon">▼</span>
+                </div>
+                <div class="collapsible-content" id="bulkOrders-content">
+                    <h4>新規大口注文登録</h4>
+                    <div class="bulk-order-form">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label for="clientName">納品先名:</label>
+                                <input type="text" id="clientName" placeholder="ホテル・企業名など">
+                            </div>
+                            <div class="form-group">
+                                <label for="orderNote">備考:</label>
+                                <input type="text" id="orderNote" placeholder="用途・連絡先など">
+                            </div>
+                        </div>
+                        <div class="same-date-section">
+                            <input type="checkbox" id="sameDateForAll" onchange="toggleSameDateMode()">
+                            <label for="sameDateForAll" style="display:inline;">すべて同じ納期で設定</label>
+                            <div id="commonDateInput" style="display: none; margin-top: 12px;">
+                                <label for="commonDeliveryDate">共通納期:</label>
+                                <input type="date" id="commonDeliveryDate" onchange="applyCommonDate()">
+                            </div>
+                        </div>
+                        <h6 style="margin: 16px 0 8px 0;">製品選択</h6>
+                        <div class="product-selection" id="productSelection"></div>
+                        <div class="order-summary">
+                            <h6>注文内容確認</h6>
+                            <div id="orderSummary">製品を選択すると内容が表示されます</div>
+                            <button class="btn" onclick="addBulkOrder()" style="margin-top: 16px; width: 100%;">📦 大口注文を登録</button>
+                        </div>
+                    </div>
+                    <h5>登録済み大口注文（納期順）</h5>
+                    <div id="bulkOrdersList"></div>
+                </div>
+            </div>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('productSettings')">
+                    <span>🍪 製品管理</span>
+                    <span class="toggle-icon" id="productSettings-icon">▼</span>
+                </div>
+                <div class="collapsible-content" id="productSettings-content">
+                    <div class="add-product-form">
+                        <h5 style="margin-top: 0;">新しい製品を追加</h5>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="margin-bottom: 8px; display: block; font-size: 14px; color: #475569;">製品名</label>
+                                <input type="text" id="newProductName" placeholder="例: パイナップルクッキー">
+                            </div>
+                            <div>
+                                <label style="margin-bottom: 8px; display: block; font-size: 14px; color: #475569;">1袋個数</label>
+                                <input type="number" id="newProductPieces" placeholder="10" min="1" value="10">
+                            </div>
+                            <div>
+                                <label style="margin-bottom: 8px; display: block; font-size: 14px; color: #475569;">天板枚数</label>
+                                <input type="number" id="newProductTray" placeholder="20" min="1" value="20">
+                            </div>
+                            <div>
+                                <label style="margin-bottom: 8px; display: block; font-size: 14px; color: #475569;">基準需要</label>
+                                <input type="number" id="newProductDemand" placeholder="20" min="1" value="20">
+                            </div>
+                            <div style="display: flex; align-items: flex-end;">
+                                <button class="btn btn-success" onclick="addNewProduct()" style="width: 100%; margin: 0;">➕ 製品追加</button>
+                            </div>
+                        </div>
+                        <div style="color: #64748b; font-size: 13px; margin-top: 8px; font-style: italic;">※ 基準需要は過去4週間の実績入力後に自動計算されます</div>
+                    </div>
+                    <div id="productsList"></div>
+                </div>
+            </div>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('demandSettings')">
+                    <span>🌤️ 需要予測設定</span>
+                    <span class="toggle-icon" id="demandSettings-icon">▼</span>
+                </div>
+                <div class="collapsible-content" id="demandSettings-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <p style="margin: 0; color: #64748b;">需要係数を設定して予測値を調整します</p>
+                        <button class="btn btn-small" id="editDemandBtn" onclick="toggleDemandEdit()">✏️ 自由入力モード</button>
+                    </div>
+                    
+                    <div id="demandSelectMode" class="compact-grid">
+                        <div class="form-group">
+                            <label for="weather">天気予報:</label>
+                            <select id="weather" onchange="updateForecast()">
+                                <option value="1.05">晴れ (+5%)</option>
+                                <option value="1.0" selected>曇り (±0%)</option>
+                                <option value="0.9">雨予報 (-10%)</option>
+                                <option value="0.75">台風接近 (-25%)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="season">季節要因:</label>
+                            <select id="season" onchange="updateForecast()">
+                                <option value="1.2">超観光シーズン (+20%)</option>
+                                <option value="1.15" selected>観光シーズン (+15%)</option>
+                                <option value="1.0">通常期 (±0%)</option>
+                                <option value="0.85">やや閑散期 (-15%)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tourist">観光客:</label>
+                            <select id="tourist" onchange="updateForecast()">
+                                <option value="1.15">満員 (+15%)</option>
+                                <option value="1.05" selected>やや多め (+5%)</option>
+                                <option value="1.0">通常 (±0%)</option>
+                                <option value="0.85">少なめ (-15%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="demandInputMode" class="compact-grid" style="display: none;">
+                        <div class="form-group">
+                            <label for="weatherInput">天気予報係数:</label>
+                            <input type="number" id="weatherInput" step="0.01" min="0" max="2" onchange="updateForecastFromInput()">
+                        </div>
+                        <div class="form-group">
+                            <label for="seasonInput">季節要因係数:</label>
+                            <input type="number" id="seasonInput" step="0.01" min="0" max="2" onchange="updateForecastFromInput()">
+                        </div>
+                        <div class="form-group">
+                            <label for="touristInput">観光客係数:</label>
+                            <input type="number" id="touristInput" step="0.01" min="0" max="2" onchange="updateForecastFromInput()">
+                        </div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <h4>📈 需要係数計算</h4>
+                        <p>天気: <span id="weatherFactor">1.00</span> × 季節: <span id="seasonFactor">1.15</span> × 観光客: <span id="touristFactor">1.05</span> = <strong id="totalFactor">1.21</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #f0fdf4; padding: 24px; margin: 24px; border-radius: 12px; border: 2px solid #14532d;">
+            <h2 style="color: #14532d; margin: 0 0 16px 0; font-size: 20px;">🏭 供給管理 <span style="font-size: 14px; color: #64748b; font-weight: normal;">※参考値</span></h2>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('ovenSettings')" style="background: #14532d;">
+                    <span>🔥 オーブン設定</span>
+                    <span class="toggle-icon" id="ovenSettings-icon">▼</span>
+                </div>
+                <div class="collapsible-content" id="ovenSettings-content">
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h4 style="margin: 0; color: #334155;">オーブン一覧</h4>
+                            <button class="btn btn-small" onclick="addOven()">➕ オーブン追加</button>
+                        </div>
+                        <div id="ovensList"></div>
+                    </div>
+                    <div class="result-box">
+                        <h4 style="margin-top: 0;">📊 合計生産能力</h4>
+                        <p>1日最大生産能力: <strong id="maxCapacity">133</strong>個</p>
+                        <div id="ovenCapacityBreakdown" style="color: #64748b; font-size: 14px; margin-top: 12px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('shiftSettings')" style="background: #14532d;">
+                    <span>👥 シフト・生産係数設定</span>
+                    <span class="toggle-icon" id="shiftSettings-icon">▼</span>
+                </div>
+                <div class="collapsible-content" id="shiftSettings-content">
+                    <p style="color: #14532d; margin-bottom: 16px;">各曜日の生産係数を設定します（1.0=通常、0.5=半分、0=休み）</p>
+                    <div class="compact-grid">
+                        <div class="form-group">
+                            <label for="mondayWeight">月曜日:</label>
+                            <input type="number" id="mondayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(0, this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="tuesdayWeight">火曜日:</label>
+                            <input type="number" id="tuesdayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(1, this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="wednesdayWeight">水曜日:</label>
+                            <input type="number" id="wednesdayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(2, this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="thursdayWeight">木曜日:</label>
+                            <input type="number" id="thursdayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(3, this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="fridayWeight">金曜日:</label>
+                            <input type="number" id="fridayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(4, this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="saturdayWeight">土曜日:</label>
+                            <input type="number" id="saturdayWeight" value="1.0" min="0" max="2" step="0.1" onchange="updateShiftWeight(5, this.value)">
+                        </div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <h4>プリセット</h4>
+                        <button class="btn btn-small" onclick="setShiftPreset('normal')">通常シフト (全て1.0)</button>
+                        <button class="btn btn-small" onclick="setShiftPreset('weekend')">週末強化 (金土1.5倍)</button>
+                        <button class="btn btn-small" onclick="setShiftPreset('midweek')">平日集中 (火水木1.3倍)</button>
+                        <button class="btn btn-small" onclick="setShiftPreset('fiveday')">週5日営業 (土曜休み)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible">
+            <div class="collapsible-header" onclick="toggleCollapsible('dataManagement')" style="background: #475569;">
+                <span>💾 データ管理</span>
+                <span class="toggle-icon" id="dataManagement-icon">▼</span>
+            </div>
+            <div class="collapsible-content" id="dataManagement-content">
+                <h4 style="margin-top: 0; color: #334155; font-size: 18px;">📥 データのバックアップ・復元</h4>
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
+                    全てのデータ（製品情報、在庫、大口注文、オーブン設定など）をJSONファイルで保存・読込できます。
+                </p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h5 style="margin-top: 0; color: #334155; font-size: 16px;">📤 データ出力（バックアップ）</h5>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
+                            現在のすべてのデータをJSONファイルとして保存します。定期的なバックアップをお勧めします。
+                        </p>
+                        <button class="btn btn-success" onclick="exportAllData()" style="width: 100%; font-size: 15px; padding: 12px;">
+                            💾 データを出力
+                        </button>
+                    </div>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h5 style="margin-top: 0; color: #334155; font-size: 16px;">📥 データ読込（復元）</h5>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
+                            以前に保存したJSONファイルを読み込んで、データを復元します。
+                        </p>
+                        <label class="btn" style="width: 100%; font-size: 15px; padding: 12px; text-align: center; cursor: pointer; margin: 0; background: #475569;">
+                            📁 データを読込
+                            <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="background: #fef3c7; padding: 16px; border-radius: 6px; margin-top: 20px; border-left: 4px solid #a16207;">
+                    <strong style="color: #78350f; font-size: 14px;">⚠️ 注意事項</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #78350f; font-size: 13px;">
+                        <li>データ読込を行うと、現在のデータは<strong>完全に上書き</strong>されます</li>
+                        <li>重要なデータは必ず事前にバックアップを取ってください</li>
+                        <li>JSONファイルは手動で編集しないでください（エラーの原因になります）</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="productEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🍪 製品情報編集</h3>
+                <span class="modal-close" onclick="closeProductEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProductOldName">
+                <div class="form-group">
+                    <label for="editProductName">製品名:</label>
+                    <input type="text" id="editProductName" placeholder="製品名">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="editProductPieces">1袋個数:</label>
+                        <input type="number" id="editProductPieces" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductTray">天板枚数:</label>
+                        <input type="number" id="editProductTray" min="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeProductEditModal()">キャンセル</button>
+                <button class="btn btn-success" onclick="saveProductEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulkOrderEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📦 大口注文編集</h3>
+                <span class="modal-close" onclick="closeBulkOrderEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editOrderId">
+                <input type="hidden" id="editOrderProductName">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="editOrderQuantity">注文数(袋):</label>
+                        <input type="number" id="editOrderQuantity" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderDelivery">納期:</label>
+                        <input type="date" id="editOrderDelivery">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeBulkOrderEditModal()">キャンセル</button>
+                <button class="btn btn-success" onclick="saveBulkOrderEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// デフォルトデータ
+function getTodayPlusDays(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+const defaultData = {
+    products: [
+        { name: '石垣の塩クッキー', piecesPerBag: 12, piecesPerTray: 24, popularity: 1.0, baseWeeklyDemand: 19, currentStock: 9, safetyStock: 10, historicalData: [10, 20, 15, 14] },
+        { name: '紅芋クッキー', piecesPerBag: 10, piecesPerTray: 20, popularity: 1.2, baseWeeklyDemand: 20, currentStock: 18, safetyStock: 8, historicalData: [15, 25, 18, 22] },
+        { name: '黒糖クッキー', piecesPerBag: 8, piecesPerTray: 16, popularity: 1.0, baseWeeklyDemand: 24, currentStock: 12, safetyStock: 12, historicalData: [22, 25, 24, 23] },
+        { name: 'マンゴークッキー', piecesPerBag: 15, piecesPerTray: 30, popularity: 1.2, baseWeeklyDemand: 22, currentStock: 11, safetyStock: 10, historicalData: [21, 23, 22, 24] },
+        { name: 'ちんすこう風', piecesPerBag: 6, piecesPerTray: 12, popularity: 1.0, baseWeeklyDemand: 14, currentStock: 8, safetyStock: 8, historicalData: [12, 15, 14, 13] }
+    ],
+    demandFactors: { weather: 1.0, season: 1.15, tourist: 1.05 },
+    ovens: [
+        { id: 1, name: 'オーブン1', piecesPerBatch: 25, workingHours: 4, batchDuration: 45 }
+    ],
+    shiftWeights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    bulkOrders: [
+        {
+            id: 1700000001,
+            clientName: 'リゾートホテル石垣',
+            note: 'ウェルカムギフト用',
+            products: [
+                { productName: '石垣の塩クッキー', quantity: 50, produced: 15, deliveryDate: getTodayPlusDays(5) },
+                { productName: '紅芋クッキー', quantity: 30, produced: 10, deliveryDate: getTodayPlusDays(5) }
+            ],
+            createdAt: getTodayPlusDays(-2)
+        },
+        {
+            id: 1700000002,
+            clientName: '石垣市役所',
+            note: 'イベント記念品',
+            products: [
+                { productName: 'マンゴークッキー', quantity: 100, produced: 20, deliveryDate: getTodayPlusDays(14) },
+                { productName: 'ちんすこう風', quantity: 80, produced: 0, deliveryDate: getTodayPlusDays(14) }
+            ],
+            createdAt: getTodayPlusDays(-5)
+        }
+    ]
+};
+
+let products = JSON.parse(JSON.stringify(defaultData.products));
+let demandFactors = { ...defaultData.demandFactors };
+let ovens = JSON.parse(JSON.stringify(defaultData.ovens));
+let shiftWeights = [...defaultData.shiftWeights];
+let bulkOrders = JSON.parse(JSON.stringify(defaultData.bulkOrders));
+let maxDailyProduction = 0;
+let weeklyPlan = [];
+
+function toggleCollapsible(id) {
+    const content = document.getElementById(id + '-content');
+    const icon = document.getElementById(id + '-icon');
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        if (icon) icon.classList.remove('rotated');
+    } else {
+        content.classList.add('open');
+        if (icon) icon.classList.add('rotated');
+    }
+}
+
+function openProductEditModal(productName) {
+    const product = products.find(p => p.name === productName);
+    if (!product) return;
+    document.getElementById('editProductOldName').value = productName;
+    document.getElementById('editProductName').value = product.name;
+    document.getElementById('editProductPieces').value = product.piecesPerBag;
+    document.getElementById('editProductTray').value = product.piecesPerTray;
+    document.getElementById('productEditModal').classList.add('show');
+}
+
+function closeProductEditModal() {
+    document.getElementById('productEditModal').classList.remove('show');
+}
+
+function saveProductEdit() {
+    const oldName = document.getElementById('editProductOldName').value;
+    const newName = document.getElementById('editProductName').value.trim();
+    const pieces = parseInt(document.getElementById('editProductPieces').value) || 10;
+    const tray = parseInt(document.getElementById('editProductTray').value) || 20;
+    if (!newName) { alert('製品名を入力してください'); return; }
+    const product = products.find(p => p.name === oldName);
+    if (!product) return;
+    if (oldName !== newName && products.find(p => p.name === newName)) { alert('同じ名前の製品が既に存在します'); return; }
+    product.name = newName;
+    product.piecesPerBag = pieces;
+    product.piecesPerTray = tray;
+    if (oldName !== newName) {
+        bulkOrders.forEach(order => {
+            order.products.forEach(p => {
+                if (p.productName === oldName) p.productName = newName;
+            });
+        });
+    }
+    closeProductEditModal();
+    updateAll();
+    alert('製品情報を更新しました');
+}
+
+function openBulkOrderEditModal(orderId, productName) {
+    const order = bulkOrders.find(o => o.id === orderId);
+    if (!order) return;
+    const product = order.products.find(p => p.productName === productName);
+    if (!product) return;
+    document.getElementById('editOrderId').value = orderId;
+    document.getElementById('editOrderProductName').value = productName;
+    document.getElementById('editOrderQuantity').value = product.quantity;
+    document.getElementById('editOrderDelivery').value = product.deliveryDate;
+    document.getElementById('bulkOrderEditModal').classList.add('show');
+}
+
+function closeBulkOrderEditModal() {
+    document.getElementById('bulkOrderEditModal').classList.remove('show');
+}
+
+function saveBulkOrderEdit() {
+    const orderId = parseInt(document.getElementById('editOrderId').value);
+    const productName = document.getElementById('editOrderProductName').value;
+    const quantity = parseInt(document.getElementById('editOrderQuantity').value);
+    const deliveryDate = document.getElementById('editOrderDelivery').value;
+    if (!quantity || quantity <= 0) { alert('数量を正しく入力してください'); return; }
+    if (!deliveryDate) { alert('納期を設定してください'); return; }
+    const order = bulkOrders.find(o => o.id === orderId);
+    if (!order) return;
+    const product = order.products.find(p => p.productName === productName);
+    if (!product) return;
+    product.quantity = quantity;
+    product.deliveryDate = deliveryDate;
+    if (product.produced > product.quantity) product.produced = product.quantity;
+    closeBulkOrderEditModal();
+    updateAll();
+    alert('大口注文を更新しました');
+}
+
+function toggleSameDateMode() {
+    const isChecked = document.getElementById('sameDateForAll').checked;
+    const commonDateSection = document.getElementById('commonDateInput');
+    commonDateSection.style.display = isChecked ? 'block' : 'none';
+    if (isChecked) applyCommonDate();
+    updateOrderSummary();
+}
+
+function applyCommonDate() {
+    const commonDate = document.getElementById('commonDeliveryDate').value;
+    if (commonDate) {
+        products.forEach(product => {
+            const checkbox = document.getElementById('product_' + product.name);
+            const dateInput = document.getElementById('date_' + product.name);
+            if (checkbox && checkbox.checked && dateInput) dateInput.value = commonDate;
+        });
+        updateOrderSummary();
+    }
+}
+
+function updateOrderSummary() {
+    const clientName = document.getElementById('clientName').value;
+    const selectedProducts = [];
+    let totalBags = 0;
+    products.forEach(product => {
+        const checkbox = document.getElementById('product_' + product.name);
+        const quantityInput = document.getElementById('quantity_' + product.name);
+        const dateInput = document.getElementById('date_' + product.name);
+        if (checkbox && checkbox.checked) {
+            const quantity = parseInt(quantityInput.value) || 0;
+            const deliveryDate = dateInput.value;
+            if (quantity > 0 && deliveryDate) {
+                selectedProducts.push({ name: product.name, quantity: quantity, deliveryDate: deliveryDate });
+                totalBags += quantity;
+            }
+        }
+    });
+    const summaryDiv = document.getElementById('orderSummary');
+    if (selectedProducts.length === 0) {
+        summaryDiv.innerHTML = '製品を選択すると内容が表示されます';
+        return;
+    }
+    let html = '<div><strong>納品先:</strong> ' + (clientName || '未入力') + '</div>';
+    selectedProducts.forEach(item => {
+        const deliveryDate = new Date(item.deliveryDate);
+        const today = new Date();
+        const daysUntil = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24));
+        html += '<div style="margin-left: 16px;">• ' + item.name + ': ' + item.quantity + '袋 (納期: ' + item.deliveryDate + ', ' + daysUntil + '日後)</div>';
+    });
+    html += '<div style="margin-top: 12px;"><strong>合計: ' + totalBags + '袋</strong></div>';
+    summaryDiv.innerHTML = html;
+}
+
+function addBulkOrder() {
+    const clientName = document.getElementById('clientName').value.trim();
+    if (!clientName) { alert('納品先名を入力してください'); return; }
+    const selectedProducts = [];
+    products.forEach(product => {
+        const checkbox = document.getElementById('product_' + product.name);
+        const quantityInput = document.getElementById('quantity_' + product.name);
+        const dateInput = document.getElementById('date_' + product.name);
+        if (checkbox && checkbox.checked) {
+            const quantity = parseInt(quantityInput.value) || 0;
+            const deliveryDate = dateInput.value;
+            if (quantity > 0 && deliveryDate) {
+                selectedProducts.push({ productName: product.name, quantity: quantity, produced: 0, deliveryDate: deliveryDate });
+            }
+        }
+    });
+    if (selectedProducts.length === 0) { alert('少なくとも1つの製品を選択してください'); return; }
+    const newOrder = {
+        id: Date.now(),
+        clientName: clientName,
+        note: document.getElementById('orderNote').value.trim(),
+        products: selectedProducts,
+        createdAt: new Date().toISOString().split('T')[0]
+    };
+    bulkOrders.push(newOrder);
+    document.getElementById('clientName').value = '';
+    document.getElementById('orderNote').value = '';
+    document.getElementById('sameDateForAll').checked = false;
+    document.getElementById('commonDeliveryDate').value = '';
+    document.getElementById('commonDateInput').style.display = 'none';
+    products.forEach(product => {
+        const checkbox = document.getElementById('product_' + product.name);
+        const quantityInput = document.getElementById('quantity_' + product.name);
+        const dateInput = document.getElementById('date_' + product.name);
+        if (checkbox) checkbox.checked = false;
+        if (quantityInput) { quantityInput.value = ''; quantityInput.disabled = true; }
+        if (dateInput) { dateInput.value = ''; dateInput.disabled = true; }
+    });
+    updateOrderSummary();
+    updateBulkOrdersList();
+    updateProductionPlan();
+    displayMonthlyBulkOrderDetails();
+    updateTodayProduction();
+    alert('大口注文を登録しました');
+}
+
+function removeBulkOrder(orderId) {
+    if (confirm('この大口注文を削除しますか?')) {
+        bulkOrders = bulkOrders.filter(order => order.id !== orderId);
+        updateBulkOrdersList();
+        displayMonthlyBulkOrderDetails();
+        updateAll();
+    }
+}
+
+function updateBulkOrderProduced(orderId, productName, newProduced) {
+    const order = bulkOrders.find(o => o.id === orderId);
+    if (order) {
+        const product = order.products.find(p => p.productName === productName);
+        if (product) {
+            product.produced = parseInt(newProduced) || 0;
+            updateBulkOrdersList();
+            displayMonthlyBulkOrderDetails();
+            updateTodayProduction();
+        }
+    }
+}
+
+function updateBulkOrdersList() {
+    const container = document.getElementById('bulkOrdersList');
+    if (bulkOrders.length === 0) {
+        container.innerHTML = '<p style="color: #64748b;">登録済みの大口注文はありません</p>';
+        return;
+    }
+    const sortedOrders = [...bulkOrders].sort((a, b) => {
+        const earliestA = a.products.reduce((earliest, product) => {
+            const date = new Date(product.deliveryDate);
+            return !earliest || date < earliest ? date : earliest;
+        }, null);
+        const earliestB = b.products.reduce((earliest, product) => {
+            const date = new Date(product.deliveryDate);
+            return !earliest || date < earliest ? date : earliest;
+        }, null);
+        return earliestA - earliestB;
+    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    container.innerHTML = sortedOrders.map(order => {
+        const earliestDelivery = order.products.reduce((earliest, product) => {
+            const date = new Date(product.deliveryDate);
+            return !earliest || date < earliest ? date : earliest;
+        }, null);
+        const daysUntil = Math.ceil((earliestDelivery - today) / (1000 * 60 * 60 * 24));
+        let urgencyClass = 'urgency-normal';
+        let urgencyText = '🔵 余裕';
+        if (daysUntil <= 3) { urgencyClass = 'urgency-urgent'; urgencyText = '🔴 緊急'; }
+        else if (daysUntil <= 7) { urgencyClass = 'urgency-warning'; urgencyText = '🟡 注意'; }
+        return '<div class="bulk-order-card">' +
+            '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+            '<div><div class="client-name">' + order.clientName + '</div>' +
+            '<div style="color: #64748b; font-size: 14px;">登録日: ' + order.createdAt + (order.note ? ' | ' + order.note : '') + '</div>' +
+            '<span class="urgency-badge ' + urgencyClass + '">' + urgencyText + ' (最短納期まで' + daysUntil + '日)</span></div>' +
+            '<button class="btn btn-small btn-danger" onclick="removeBulkOrder(' + order.id + ')">削除</button></div>' +
+            '<div style="margin-top: 12px;"><table class="table"><thead><tr><th>製品</th><th>注文数</th><th>生産済</th><th>残り</th><th>納期</th><th>操作</th></tr></thead><tbody>' +
+            order.products.map(p => {
+                const pDate = new Date(p.deliveryDate);
+                const pDays = Math.ceil((pDate - today) / (1000 * 60 * 60 * 24));
+                const remaining = p.quantity - (p.produced || 0);
+                const progress = Math.round(((p.produced || 0) / p.quantity) * 100);
+                return '<tr><td>' + p.productName + '</td>' +
+                    '<td><strong>' + p.quantity + '袋</strong></td>' +
+                    '<td><input type="number" class="editable-produced" value="' + (p.produced || 0) + '" min="0" max="' + p.quantity + '" onchange="updateBulkOrderProduced(' + order.id + ', \'' + p.productName + '\', this.value)"> <span style="color: #64748b;">(' + progress + '%)</span></td>' +
+                    '<td style="color: ' + (remaining > 0 ? '#d97706' : '#059669') + '; font-weight: 600;">' + remaining + '袋</td>' +
+                    '<td>' + p.deliveryDate + ' (' + pDays + '日後)</td>' +
+                    '<td><button class="btn btn-small btn-warning" onclick="openBulkOrderEditModal(' + order.id + ', \'' + p.productName + '\')">✏️ 編集</button></td></tr>';
+            }).join('') + '</tbody></table></div></div>';
+    }).join('');
+}
+
+function getMonthlyBulkOrders() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const monthEnd = new Date(today);
+    monthEnd.setDate(today.getDate() + 29);
+    const orders = {};
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            if (deliveryDate >= today && deliveryDate <= monthEnd) {
+                if (!orders[product.productName]) orders[product.productName] = 0;
+                orders[product.productName] += product.quantity;
+            }
+        });
+    });
+    return orders;
+}
+
+function getTodayBulkOrders() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayOrders = {};
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            const daysUntilDelivery = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24)) + 1;
+            if (daysUntilDelivery > 0 && daysUntilDelivery <= 30) {
+                const remaining = product.quantity - (product.produced || 0);
+                if (remaining > 0) {
+                    const dailyProduction = Math.ceil(remaining / daysUntilDelivery);
+                    if (!todayOrders[product.productName]) todayOrders[product.productName] = 0;
+                    todayOrders[product.productName] += dailyProduction;
+                }
+            }
+        });
+    });
+    return todayOrders;
+}
+
+function getWeeklyBulkOrders() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(today);
+    weekEnd.setDate(today.getDate() + 6);
+    const weeklyOrders = {};
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            const daysUntilDelivery = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24)) + 1;
+            if (daysUntilDelivery > 0 && daysUntilDelivery <= 30) {
+                const remaining = product.quantity - (product.produced || 0);
+                if (remaining > 0) {
+                    const dailyProduction = remaining / daysUntilDelivery;
+                    const weeklyProduction = Math.ceil(dailyProduction * 7);
+                    if (!weeklyOrders[product.productName]) weeklyOrders[product.productName] = 0;
+                    weeklyOrders[product.productName] += weeklyProduction;
+                }
+            }
+        });
+    });
+    return weeklyOrders;
+}
+
+function displayDeliveryAlerts() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const alertContainer = document.getElementById('deliveryAlertSection');
+    const alerts = [];
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            const daysUntil = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24));
+            const remaining = product.quantity - (product.produced || 0);
+            if (daysUntil <= 5 && daysUntil >= 0 && remaining > 0) {
+                alerts.push({
+                    clientName: order.clientName,
+                    productName: product.productName,
+                    remaining: remaining,
+                    total: product.quantity,
+                    produced: product.produced || 0,
+                    daysUntil: daysUntil,
+                    deliveryDate: product.deliveryDate
+                });
+            }
+        });
+    });
+    if (alerts.length === 0) {
+        alertContainer.innerHTML = '';
+        return;
+    }
+    let html = '<div class="delivery-alert-section"><h3>🚨 納品期限アラート（5日以内）</h3>' +
+        '<p style="margin: 0 0 12px 0; font-size: 16px;">以下の注文は納期が迫っています。優先的に生産を進めてください。</p>';
+    alerts.forEach(alert => {
+        const progress = Math.round((alert.produced / alert.total) * 100);
+        html += '<div class="delivery-alert-item"><strong>' + alert.clientName + '</strong> - ' + alert.productName + '<br>' +
+            '<span style="font-size: 18px;">残り <strong style="font-size: 22px; color: #991b1b;">' + alert.remaining + '袋</strong> (進捗: ' + progress + '%)</span><br>' +
+            '<span style="color: #64748b;">納期: ' + alert.deliveryDate + ' (あと<strong>' + alert.daysUntil + '日</strong>)</span></div>';
+    });
+    html += '</div>';
+    alertContainer.innerHTML = html;
+}
+
+function updateProductionPlan() {
+    const totalFactor = demandFactors.weather * demandFactors.season * demandFactors.tourist;
+    const weeklyBulkOrders = getWeeklyBulkOrders();
+    weeklyPlan = products.map(product => {
+        const forecast = Math.round(product.baseWeeklyDemand * totalFactor * product.popularity);
+        const bulkOrderQuantity = weeklyBulkOrders[product.name] || 0;
+        const totalDemand = forecast + bulkOrderQuantity;
+        const targetStock = totalDemand + product.safetyStock;
+        const production = Math.max(0, targetStock - product.currentStock);
+        const productionPieces = production * product.piecesPerBag;
+        const expectedStock = product.currentStock + production - totalDemand;
+        return {
+            name: product.name,
+            currentStock: product.currentStock,
+            baseDemand: product.baseWeeklyDemand,
+            forecast: forecast,
+            bulkOrder: bulkOrderQuantity,
+            totalDemand: totalDemand,
+            production: production,
+            productionPieces: productionPieces,
+            expectedStock: expectedStock,
+            safetyStock: product.safetyStock
+        };
+    });
+    const tbody = document.getElementById('planTableBody');
+    tbody.innerHTML = weeklyPlan.map(plan => {
+        let productionClass = plan.production > 0 ? 'production-needed' : '';
+        let stockClass = plan.currentStock < plan.safetyStock ? 'low-stock' : '';
+        return '<tr><td>' + plan.name + '</td>' +
+            '<td class="' + stockClass + '">' + plan.currentStock + '袋</td>' +
+            '<td>' + plan.baseDemand + '袋</td>' +
+            '<td>' + plan.forecast + '袋</td>' +
+            '<td style="' + (plan.bulkOrder > 0 ? 'background-color: #fef3c7; font-weight: 600;' : '') + '">' + plan.bulkOrder + '袋</td>' +
+            '<td><strong>' + plan.totalDemand + '袋</strong></td>' +
+            '<td class="' + productionClass + '">' + plan.production + '袋</td>' +
+            '<td class="' + productionClass + '">' + plan.productionPieces + '個</td>' +
+            '<td>' + plan.expectedStock + '袋</td></tr>';
+    }).join('');
+    const totalWeeklyPieces = weeklyPlan.reduce((sum, plan) => sum + plan.productionPieces, 0);
+    const maxWeeklyCapacity = maxDailyProduction * 6;
+    const utilizationRate = totalWeeklyPieces / maxWeeklyCapacity;
+    const alertDiv = document.getElementById('capacityAlert');
+    if (utilizationRate > 1.0) {
+        alertDiv.innerHTML = '<div class="alert alert-warning">⚠️ 週間生産予定: ' + totalWeeklyPieces + '個 / ' + maxWeeklyCapacity + '個 - 能力オーバー</div>';
+    } else {
+        alertDiv.innerHTML = '<div class="alert alert-success">✅ 週間生産予定: ' + totalWeeklyPieces + '個 / ' + maxWeeklyCapacity + '個 - 稼働率 ' + Math.round(utilizationRate * 100) + '%</div>';
+    }
+    updateTodayProduction();
+}
+
+function updateTodayProduction() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayBulkOrders = getTodayBulkOrders();
+    let todayTasks = [];
+    displayDeliveryAlerts();
+    products.forEach(product => {
+        const plan = weeklyPlan.find(p => p.name === product.name) || { production: 0, forecast: 0 };
+        const normalDailyAmount = Math.round(plan.forecast / 6);
+        const bulkDailyAmount = todayBulkOrders[product.name] || 0;
+        const totalDailyAmount = normalDailyAmount + bulkDailyAmount;
+        if (totalDailyAmount > 0) {
+            const isBelowSafety = product.currentStock < product.safetyStock;
+            const totalPieces = totalDailyAmount * product.piecesPerBag;
+            const normalPieces = normalDailyAmount * product.piecesPerBag;
+            const bulkPieces = bulkDailyAmount * product.piecesPerBag;
+            const trays = Math.ceil(totalPieces / product.piecesPerTray);
+            todayTasks.push({
+                product: product,
+                bags: totalDailyAmount,
+                pieces: totalPieces,
+                trays: trays,
+                normalPieces: normalPieces,
+                bulkPieces: bulkPieces,
+                priority: isBelowSafety ? 'emergency' : 'normal',
+                isBelowSafety: isBelowSafety
+            });
+        }
+    });
+    todayTasks.sort((a, b) => a.priority === 'emergency' && b.priority !== 'emergency' ? -1 : 1);
+    let html = todayTasks.map(task => 
+        '<div class="status-card production-' + task.priority + '">' +
+        '<div class="status-number">' + task.trays + '天板</div>' +
+        '<div class="status-label">' + task.product.name + '<br>' +
+        '<small>(' + task.pieces + '枚 = ' + task.bags + '袋)' + (task.isBelowSafety ? ' 🚨緊急' : '') + '</small><br>' +
+        '<small style="color: #64748b;">通常' + task.normalPieces + '枚 + 大口' + task.bulkPieces + '枚</small></div></div>'
+    ).join('');
+    document.getElementById('todayProduction').innerHTML = html || '<div class="status-card"><div class="status-number">✅</div><div class="status-label">今日の生産予定はありません</div></div>';
+}
+
+function displayMonthlyBulkOrderDetails() {
+    const container = document.getElementById('monthlyBulkOrderDetails');
+    if (!container) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (bulkOrders.length === 0) {
+        container.innerHTML = '<p style="color: #64748b;">30日以内の大口注文はありません</p>';
+        return;
+    }
+    let html = '<div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">' +
+        '<h4 style="margin-top: 0;">📊 製品別 月次生産計画（進捗考慮）</h4>' +
+        '<table class="table"><thead><tr><th>製品名</th><th>注文合計</th><th>生産済み</th><th>残り</th><th>1日あたり必要</th></tr></thead><tbody>';
+    const productSummary = {};
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            const monthEnd = new Date(today);
+            monthEnd.setDate(today.getDate() + 29);
+            if (deliveryDate >= today && deliveryDate <= monthEnd) {
+                if (!productSummary[product.productName]) productSummary[product.productName] = { total: 0, produced: 0 };
+                productSummary[product.productName].total += product.quantity;
+                productSummary[product.productName].produced += (product.produced || 0);
+            }
+        });
+    });
+    products.forEach(product => {
+        const summary = productSummary[product.name];
+        if (summary) {
+            const remaining = summary.total - summary.produced;
+            const progressPercent = Math.round((summary.produced / summary.total) * 100);
+            const avgDaily = remaining > 0 ? Math.ceil(remaining / 30) : 0;
+            html += '<tr><td>' + product.name + '</td>' +
+                '<td><strong>' + summary.total + '袋</strong></td>' +
+                '<td style="color: #059669;">' + summary.produced + '袋 (' + progressPercent + '%)</td>' +
+                '<td style="' + (remaining > 0 ? 'color: #d97706; font-weight: 600;' : 'color: #059669;') + '">' + remaining + '袋</td>' +
+                '<td>約' + avgDaily + '袋/日</td></tr>';
+        }
+    });
+    html += '</tbody></table></div>';
+    const ordersByDate = {};
+    bulkOrders.forEach(order => {
+        order.products.forEach(product => {
+            const deliveryDate = new Date(product.deliveryDate);
+            deliveryDate.setHours(0, 0, 0, 0);
+            const monthEnd = new Date(today);
+            monthEnd.setDate(today.getDate() + 29);
+            if (deliveryDate >= today && deliveryDate <= monthEnd) {
+                const dateKey = product.deliveryDate;
+                if (!ordersByDate[dateKey]) ordersByDate[dateKey] = [];
+                const remaining = product.quantity - (product.produced || 0);
+                const daysUntil = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24));
+                const dailyProduction = remaining > 0 ? Math.ceil(remaining / (daysUntil + 1)) : 0;
+                ordersByDate[dateKey].push({
+                    orderId: order.id,
+                    clientName: order.clientName,
+                    productName: product.productName,
+                    quantity: product.quantity,
+                    produced: product.produced || 0,
+                    remaining: remaining,
+                    note: order.note,
+                    daysUntil: daysUntil,
+                    dailyProduction: dailyProduction
+                });
+            }
+        });
+    });
+    const sortedDates = Object.keys(ordersByDate).sort((a, b) => new Date(a) - new Date(b));
+    if (sortedDates.length > 0) {
+        html += '<div style="margin-top: 20px;"><h4>📅 納期別詳細（進捗管理）</h4>';
+        sortedDates.forEach(dateKey => {
+            const deliveryDate = new Date(dateKey);
+            const daysUntil = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24));
+            let urgencyClass = 'urgency-normal';
+            let urgencyText = '🔵 余裕';
+            if (daysUntil <= 3) { urgencyClass = 'urgency-urgent'; urgencyText = '🔴 緊急'; }
+            else if (daysUntil <= 7) { urgencyClass = 'urgency-warning'; urgencyText = '🟡 注意'; }
+            html += '<div style="background: white; padding: 16px; margin: 12px 0; border-radius: 8px; border-left: 4px solid #475569;">' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
+                '<strong style="font-size: 16px;">納期: ' + dateKey + '</strong>' +
+                '<span class="urgency-badge ' + urgencyClass + '">' + urgencyText + ' (' + daysUntil + '日後)</span></div>' +
+                '<table style="width: 100%; font-size: 14px;"><thead><tr style="background: #f8fafc;">' +
+                '<th style="padding: 8px; text-align: left;">納品先</th>' +
+                '<th style="padding: 8px; text-align: left;">製品</th>' +
+                '<th style="padding: 8px; text-align: right;">注文数</th>' +
+                '<th style="padding: 8px; text-align: right;">生産済</th>' +
+                '<th style="padding: 8px; text-align: right;">残り</th>' +
+                '<th style="padding: 8px; text-align: right;">1日必要</th>' +
+                '<th style="padding: 8px; text-align: left;">備考</th></tr></thead><tbody>';
+            ordersByDate[dateKey].forEach(item => {
+                const progressPercent = Math.round((item.produced / item.quantity) * 100);
+                html += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+                    '<td style="padding: 8px;">' + item.clientName + '</td>' +
+                    '<td style="padding: 8px;">' + item.productName + '</td>' +
+                    '<td style="padding: 8px; text-align: right;"><strong>' + item.quantity + '袋</strong></td>' +
+                    '<td style="padding: 8px; text-align: right;">' +
+                    '<input type="number" value="' + item.produced + '" min="0" max="' + item.quantity + '" ' +
+                    'style="width: 60px; padding: 4px; border: 1px solid #d1d5db; border-radius: 4px; text-align: right;" ' +
+                    'onchange="updateBulkOrderProduced(' + item.orderId + ', \'' + item.productName + '\', this.value)">' +
+                    '<span style="color: #64748b; margin-left: 4px;">袋 (' + progressPercent + '%)</span></td>' +
+                    '<td style="padding: 8px; text-align: right; color: ' + (item.remaining > 0 ? '#d97706' : '#059669') + '; font-weight: 600;">' + item.remaining + '袋</td>' +
+                    '<td style="padding: 8px; text-align: right; color: #059669;">' + item.dailyProduction + '袋/日</td>' +
+                    '<td style="padding: 8px; color: #64748b;">' + (item.note || '-') + '</td></tr>';
+            });
+            html += '</tbody></table></div>';
+        });
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+function updateProductsList() {
+    const container = document.getElementById('productsList');
+    container.innerHTML = products.map(product => {
+        const stockDays = (product.currentStock / (product.baseWeeklyDemand / 7)).toFixed(1);
+        const isBelowSafety = product.currentStock < product.safetyStock;
+        return '<div class="product-card">' +
+            '<div class="product-actions">' +
+            '<button class="btn btn-small btn-warning" onclick="openProductEditModal(\'' + product.name + '\')">✏️ 製品編集</button>' +
+            '<button class="btn btn-small" onclick="toggleHistorical(\'' + product.name + '\')">📊 過去4週間売上実績登録</button>' +
+            '<button class="btn btn-small btn-danger" onclick="removeProduct(\'' + product.name + '\')">🗑️ 削除</button></div>' +
+            '<div class="product-header"><div>' +
+            '<div class="product-name">' + product.name + '</div>' +
+            '<div class="product-meta">📦 ' + product.piecesPerBag + '個入り • 🍪 ' + product.piecesPerTray + '枚/天板</div></div></div>' +
+            '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">' +
+            '<div><label>基準需要(袋/週):</label><input type="number" class="value-input-large" value="' + product.baseWeeklyDemand + '" onchange="updateProductData(\'' + product.name + '\', \'baseWeeklyDemand\', this.value)" min="1"></div>' +
+            '<div><label>現在在庫(袋):</label><input type="number" class="value-input-large" value="' + product.currentStock + '" onchange="updateProductData(\'' + product.name + '\', \'currentStock\', this.value)" min="0"></div>' +
+            '<div><label>在庫状況:</label><div class="value-input-large" style="background: ' + (isBelowSafety ? '#fecaca' : '#d1fae5') + '; color: ' + (isBelowSafety ? '#991b1b' : '#14532d') + ';">' + (isBelowSafety ? '⚠️ 安全在庫割れ' : stockDays + '日分') + '</div></div></div>' +
+            '<div class="historical-section" id="historical_' + product.name + '">' +
+            '<div style="margin-bottom: 12px; color: #475569; font-weight: 500;">過去4週間の売上実績(袋)</div>' +
+            '<div class="historical-inputs">' +
+            '<div><div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">週1</div><input type="number" class="week-input" value="' + product.historicalData[0] + '" onchange="updateHistoricalData(\'' + product.name + '\', 0, this.value)" min="0"></div>' +
+            '<div><div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">週2</div><input type="number" class="week-input" value="' + product.historicalData[1] + '" onchange="updateHistoricalData(\'' + product.name + '\', 1, this.value)" min="0"></div>' +
+            '<div><div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">週3</div><input type="number" class="week-input" value="' + product.historicalData[2] + '" onchange="updateHistoricalData(\'' + product.name + '\', 2, this.value)" min="0"></div>' +
+            '<div><div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">週4</div><input type="number" class="week-input" value="' + product.historicalData[3] + '" onchange="updateHistoricalData(\'' + product.name + '\', 3, this.value)" min="0"></div></div>' +
+            '<button class="calculate-btn" onclick="calculateAndApplyBaseDemand(\'' + product.name + '\')">この実績から基準需要を算出・適用</button></div></div>';
+    }).join('');
+}
+
+function toggleHistorical(productName) {
+    const section = document.getElementById('historical_' + productName);
+    if (section) section.classList.toggle('open');
+}
+
+function updateProductData(productName, field, value) {
+    const product = products.find(p => p.name === productName);
+    if (product) {
+        if (field === 'baseWeeklyDemand' || field === 'currentStock' || field === 'safetyStock') {
+            product[field] = parseInt(value) || 0;
+        } else {
+            product[field] = parseFloat(value) || 0;
+        }
+        updateProductsList();
+        updateProductionPlan();
+        updateTodayProduction();
+    }
+}
+
+function updateHistoricalData(productName, weekIndex, value) {
+    const product = products.find(p => p.name === productName);
+    if (product) {
+        product.historicalData[weekIndex] = parseInt(value) || 0;
+        updateProductsList();
+    }
+}
+
+function calculateAndApplyBaseDemand(productName) {
+    const product = products.find(p => p.name === productName);
+    if (!product) return;
+    const validWeeks = product.historicalData.filter(w => w > 0);
+    if (validWeeks.length === 0) { alert('有効な実績データがありません'); return; }
+    const average = validWeeks.reduce((sum, week) => sum + week, 0) / validWeeks.length;
+    const result = Math.round(average);
+    product.baseWeeklyDemand = result;
+    updateProductsList();
+    updateProductionPlan();
+    alert(productName + 'の基準需要を' + result + '袋/週に更新しました（' + validWeeks.length + '週間の平均）');
+}
+
+function addNewProduct() {
+    const name = document.getElementById('newProductName').value.trim();
+    const pieces = parseInt(document.getElementById('newProductPieces').value) || 10;
+    const tray = parseInt(document.getElementById('newProductTray').value) || 20;
+    const demand = parseInt(document.getElementById('newProductDemand').value) || 20;
+    if (!name) { alert('製品名を入力してください'); return; }
+    if (products.find(p => p.name === name)) { alert('同じ名前の製品が既に存在します'); return; }
+    products.push({
+        name: name,
+        piecesPerBag: pieces,
+        piecesPerTray: tray,
+        popularity: 1.0,
+        baseWeeklyDemand: demand,
+        currentStock: 0,
+        safetyStock: Math.ceil(demand / 7 * 2),
+        historicalData: [0, 0, 0, 0]
+    });
+    document.getElementById('newProductName').value = '';
+    document.getElementById('newProductPieces').value = '10';
+    document.getElementById('newProductTray').value = '20';
+    document.getElementById('newProductDemand').value = '20';
+    initializeProductSelection();
+    updateProductsList();
+    updateProductionPlan();
+    alert('製品「' + name + '」を追加しました');
+}
+
+function removeProduct(productName) {
+    if (confirm('製品「' + productName + '」を削除しますか?\n\n⚠️ この製品に関連する大口注文も削除されます。')) {
+        products = products.filter(p => p.name !== productName);
+        bulkOrders.forEach(order => {
+            order.products = order.products.filter(p => p.productName !== productName);
+        });
+        bulkOrders = bulkOrders.filter(order => order.products.length > 0);
+        initializeProductSelection();
+        updateProductsList();
+        updateBulkOrdersList();
+        updateProductionPlan();
+        alert('製品「' + productName + '」を削除しました');
+    }
+}
+
+function toggleDemandEdit() {
+    const selectMode = document.getElementById('demandSelectMode');
+    const inputMode = document.getElementById('demandInputMode');
+    const btn = document.getElementById('editDemandBtn');
+    if (selectMode.style.display === 'none') {
+        selectMode.style.display = 'grid';
+        inputMode.style.display = 'none';
+        btn.textContent = '✏️ 自由入力モード';
+    } else {
+        selectMode.style.display = 'none';
+        inputMode.style.display = 'grid';
+        btn.textContent = '📋 プリセットモード';
+        document.getElementById('weatherInput').value = demandFactors.weather;
+        document.getElementById('seasonInput').value = demandFactors.season;
+        document.getElementById('touristInput').value = demandFactors.tourist;
+    }
+}
+
+function updateForecast() {
+    demandFactors.weather = parseFloat(document.getElementById('weather').value) || 1.0;
+    demandFactors.season = parseFloat(document.getElementById('season').value) || 1.0;
+    demandFactors.tourist = parseFloat(document.getElementById('tourist').value) || 1.0;
+    const total = demandFactors.weather * demandFactors.season * demandFactors.tourist;
+    document.getElementById('weatherFactor').textContent = demandFactors.weather.toFixed(2);
+    document.getElementById('seasonFactor').textContent = demandFactors.season.toFixed(2);
+    document.getElementById('touristFactor').textContent = demandFactors.tourist.toFixed(2);
+    document.getElementById('totalFactor').textContent = total.toFixed(2);
+    updateProductionPlan();
+}
+
+function updateForecastFromInput() {
+    demandFactors.weather = parseFloat(document.getElementById('weatherInput').value) || 1.0;
+    demandFactors.season = parseFloat(document.getElementById('seasonInput').value) || 1.0;
+    demandFactors.tourist = parseFloat(document.getElementById('touristInput').value) || 1.0;
+    const total = demandFactors.weather * demandFactors.season * demandFactors.tourist;
+    document.getElementById('weatherFactor').textContent = demandFactors.weather.toFixed(2);
+    document.getElementById('seasonFactor').textContent = demandFactors.season.toFixed(2);
+    document.getElementById('touristFactor').textContent = demandFactors.tourist.toFixed(2);
+    document.getElementById('totalFactor').textContent = total.toFixed(2);
+    updateProductionPlan();
+}
+
+function updateOvensList() {
+    const container = document.getElementById('ovensList');
+    if (!container) return;
+    if (ovens.length === 0) {
+        container.innerHTML = '<p style="color: #64748b;">オーブンが登録されていません。「➕ オーブン追加」ボタンでオーブンを追加してください。</p>';
+        return;
+    }
+    container.innerHTML = ovens.map(oven => 
+        '<div class="oven-card">' +
+        '<div class="oven-card-header">' +
+        '<input type="text" class="oven-name-input" value="' + oven.name + '" onchange="updateOvenName(' + oven.id + ', this.value)">' +
+        '<button class="btn btn-small btn-danger" onclick="removeOven(' + oven.id + ')" ' + (ovens.length === 1 ? 'disabled' : '') + '>🗑️ 削除</button></div>' +
+        '<div class="oven-settings-grid">' +
+        '<div class="form-group" style="margin: 0;"><label>1回焼成個数:</label><input type="number" value="' + oven.piecesPerBatch + '" min="10" step="5" onchange="updateOvenSetting(' + oven.id + ', \'piecesPerBatch\', this.value)"></div>' +
+        '<div class="form-group" style="margin: 0;"><label>稼働時間/日:</label><input type="number" value="' + oven.workingHours + '" min="1" max="24" onchange="updateOvenSetting(' + oven.id + ', \'workingHours\', this.value)"></div>' +
+        '<div class="form-group" style="margin: 0;"><label>焼成時間(分):</label><input type="number" value="' + oven.batchDuration + '" min="10" step="5" onchange="updateOvenSetting(' + oven.id + ', \'batchDuration\', this.value)"></div></div>' +
+        '<div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-top: 12px; color: #64748b; font-size: 14px;">💡 能力: <strong style="color: #334155;">' + calculateOvenCapacity(oven) + '個/日</strong>' +
+        '<span style="margin-left: 12px;">(' + Math.floor((oven.workingHours * 60) / oven.batchDuration) + '回/日 × ' + oven.piecesPerBatch + '個/回)</span></div></div>'
+    ).join('');
+}
+
+function calculateOvenCapacity(oven) {
+    const minutesPerDay = oven.workingHours * 60;
+    const batchesPerDay = Math.floor(minutesPerDay / oven.batchDuration);
+    return batchesPerDay * oven.piecesPerBatch;
+}
+
+function updateCapacity() {
+    maxDailyProduction = 0;
+    let breakdownHtml = '';
+    ovens.forEach(oven => {
+        const capacity = calculateOvenCapacity(oven);
+        maxDailyProduction += capacity;
+        breakdownHtml += '<div>🔥 ' + oven.name + ': ' + capacity + '個/日</div>';
+    });
+    const maxCapacityEl = document.getElementById('maxCapacity');
+    if (maxCapacityEl) maxCapacityEl.textContent = maxDailyProduction;
+    const breakdown = document.getElementById('ovenCapacityBreakdown');
+    if (breakdown) breakdown.innerHTML = breakdownHtml || '<div>オーブンがありません</div>';
+    updateProductionPlan();
+}
+
+function addOven() {
+    const newId = ovens.length > 0 ? Math.max(...ovens.map(o => o.id)) + 1 : 1;
+    ovens.push({
+        id: newId,
+        name: 'オーブン' + newId,
+        piecesPerBatch: 25,
+        workingHours: 4,
+        batchDuration: 45
+    });
+    updateOvensList();
+    updateCapacity();
+    alert('オーブンを追加しました');
+}
+
+function removeOven(id) {
+    if (ovens.length === 1) { alert('最低1台のオーブンが必要です'); return; }
+    if (confirm('このオーブンを削除しますか？')) {
+        ovens = ovens.filter(o => o.id !== id);
+        updateOvensList();
+        updateCapacity();
+        alert('オーブンを削除しました');
+    }
+}
+
+function updateOvenName(id, name) {
+    const oven = ovens.find(o => o.id === id);
+    if (oven) {
+        oven.name = name || 'オーブン' + id;
+        updateCapacity();
+    }
+}
+
+function updateOvenSetting(id, field, value) {
+    const oven = ovens.find(o => o.id === id);
+    if (oven) {
+        const numValue = parseInt(value);
+        if (isNaN(numValue) || numValue <= 0) {
+            alert('正しい数値を入力してください');
+            updateOvensList();
+            return;
+        }
+        oven[field] = numValue;
+        updateOvensList();
+        updateCapacity();
+    }
+}
+
+function updateShiftWeight(dayIndex, weight) {
+    shiftWeights[dayIndex] = parseFloat(weight) || 1.0;
+    updateProductionPlan();
+}
+
+function setShiftPreset(presetType) {
+    switch(presetType) {
+        case 'normal': shiftWeights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; break;
+        case 'weekend': shiftWeights = [1.0, 1.0, 1.0, 1.0, 1.5, 1.5]; break;
+        case 'midweek': shiftWeights = [1.0, 1.3, 1.3, 1.3, 1.0, 1.0]; break;
+        case 'fiveday': shiftWeights = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0]; break;
+    }
+    document.getElementById('mondayWeight').value = shiftWeights[0];
+    document.getElementById('tuesdayWeight').value = shiftWeights[1];
+    document.getElementById('wednesdayWeight').value = shiftWeights[2];
+    document.getElementById('thursdayWeight').value = shiftWeights[3];
+    document.getElementById('fridayWeight').value = shiftWeights[4];
+    document.getElementById('saturdayWeight').value = shiftWeights[5];
+    updateProductionPlan();
+}
+
+function exportAllData() {
+    try {
+        const data = { products, demandFactors, ovens, shiftWeights, bulkOrders };
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const filename = 'ishigaki_cookie_shop_data_' + new Date().toISOString().split('T')[0] + '.json';
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert('✅ データを出力しました: ' + filename);
+    } catch (error) {
+        console.error('JSONエクスポートエラー:', error);
+        alert('❌ データ出力中にエラーが発生しました');
+    }
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (json.products) products = JSON.parse(JSON.stringify(json.products));
+            if (json.demandFactors) demandFactors = { ...json.demandFactors };
+            if (json.ovens && Array.isArray(json.ovens) && json.ovens.length > 0) {
+                ovens = JSON.parse(JSON.stringify(json.ovens));
+            } else if (json.ovenSettings) {
+                ovens = [{
+                    id: 1,
+                    name: 'オーブン1',
+                    piecesPerBatch: json.ovenSettings.piecesPerBatch || 25,
+                    workingHours: json.ovenSettings.workingHours || 4,
+                    batchDuration: json.ovenSettings.batchDuration || 45
+                }];
+            }
+            if (json.shiftWeights) {
+                shiftWeights = [...json.shiftWeights];
+                document.getElementById('mondayWeight').value = shiftWeights[0] || 1.0;
+                document.getElementById('tuesdayWeight').value = shiftWeights[1] || 1.0;
+                document.getElementById('wednesdayWeight').value = shiftWeights[2] || 1.0;
+                document.getElementById('thursdayWeight').value = shiftWeights[3] || 1.0;
+                document.getElementById('fridayWeight').value = shiftWeights[4] || 1.0;
+                document.getElementById('saturdayWeight').value = shiftWeights[5] || 1.0;
+            }
+            if (json.bulkOrders) bulkOrders = JSON.parse(JSON.stringify(json.bulkOrders));
+            updateAll();
+            alert('✅ データの読込が完了しました\n\nすべてのデータが正常に復元されました');
+        } catch (error) {
+            console.error('JSONインポートエラー:', error);
+            alert('❌ データ読込中にエラーが発生しました\n\nファイル形式が正しいか確認してください');
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+    event.target.value = '';
+}
+
+function updateAll() {
+    updateOvensList();
+    updateCapacity();
+    initializeProductSelection();
+    updateProductsList();
+    updateBulkOrdersList();
+    updateProductionPlan();
+    displayMonthlyBulkOrderDetails();
+    updateTodayProduction();
+}
+
+function initializeProductSelection() {
+    const container = document.getElementById('productSelection');
+    container.innerHTML = products.map(product => 
+        '<div class="product-item">' +
+        '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">' +
+        '<input type="checkbox" class="product-checkbox" id="product_' + product.name + '" onchange="handleProductSelection(\'' + product.name + '\'); updateOrderSummary();">' +
+        '<label for="product_' + product.name + '" style="font-weight: 600; margin: 0;">' + product.name + '</label></div>' +
+        '<div><label>数量(袋):</label><input type="number" class="quantity-input" id="quantity_' + product.name + '" min="1" placeholder="袋数" onchange="updateOrderSummary();" disabled></div>' +
+        '<div><label>納期:</label><input type="date" id="date_' + product.name + '" onchange="updateOrderSummary();" disabled></div></div>'
+    ).join('');
+    products.forEach(product => {
+        const checkbox = document.getElementById('product_' + product.name);
+        const quantityInput = document.getElementById('quantity_' + product.name);
+        const dateInput = document.getElementById('date_' + product.name);
+        if (checkbox && quantityInput && dateInput) {
+            checkbox.addEventListener('change', function() {
+                quantityInput.disabled = !this.checked;
+                dateInput.disabled = !this.checked;
+                if (!this.checked) {
+                    quantityInput.value = '';
+                    dateInput.value = '';
+                } else {
+                    const isSameDateMode = document.getElementById('sameDateForAll').checked;
+                    const commonDate = document.getElementById('commonDeliveryDate').value;
+                    if (isSameDateMode && commonDate) dateInput.value = commonDate;
+                }
+                updateOrderSummary();
+            });
+        }
+    });
+}
+
+function handleProductSelection(productName) {
+    const checkbox = document.getElementById('product_' + productName);
+    const dateInput = document.getElementById('date_' + productName);
+    if (checkbox && checkbox.checked) {
+        const isSameDateMode = document.getElementById('sameDateForAll').checked;
+        const commonDate = document.getElementById('commonDeliveryDate').value;
+        if (isSameDateMode && commonDate && dateInput) dateInput.value = commonDate;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateOvensList();
+    updateCapacity();
+    updateForecast();
+    initializeProductSelection();
+    updateProductsList();
+    updateBulkOrdersList();
+    updateProductionPlan();
+    displayMonthlyBulkOrderDetails();
+    updateTodayProduction();
+    window.onclick = function(event) {
+        const productModal = document.getElementById('productEditModal');
+        const bulkModal = document.getElementById('bulkOrderEditModal');
+        if (event.target === productModal) closeProductEditModal();
+        if (event.target === bulkModal) closeBulkOrderEditModal();
+    };
+});
+    </script>
+</body>
+</html>
