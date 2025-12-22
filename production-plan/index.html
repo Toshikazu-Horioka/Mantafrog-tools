@@ -7,6 +7,10 @@
     <style>
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc; color: #334155; font-size: 16px; }
 .container { max-width: 1600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+.loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 2000; }
+.loading-overlay.show { display: flex; }
+.loading-spinner { width: 64px; height: 64px; border: 6px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .header { background: linear-gradient(135deg, #475569 0%, #334155 100%); color: white; padding: 32px; text-align: center; }
 .header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 600; }
 .header p { margin: 0; opacity: 0.9; font-size: 18px; }
@@ -408,19 +412,26 @@ textarea { resize: vertical; min-height: 80px; font-family: inherit; }
             <h3>💾 データ保存・読み込み</h3>
             <p style="color: #64748b; margin-bottom: 16px;">すべてのマスタデータ、注文情報、設定を保存・読み込みできます</p>
             <div class="data-management-buttons">
-                <button class="btn btn-success" onclick="exportAllData()">
-                    💾 データ保存（JSON形式でダウンロード）
+                <button class="btn btn-success" onclick="saveDataToCloud()">
+                    ☁️ データ保存
                 </button>
-                <label class="btn" style="background: #14532d; cursor: pointer;">
-                    📁 データ読み込み（JSONファイルを選択）
+                <!-- <label class="btn" style="background: #14532d; cursor: pointer;">
+                    📁 データ読み込み（ファイル選択）
                     <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
-                </label>
+                </label> -->
+                <button class="btn btn-small btn-gray" onclick="loadLatestFromCloud()">
+                    ☁️ 最新データ取得
+                </button>
                 <button class="btn btn-warning" onclick="updateAll()">
                     🔄 計画を再計算
                 </button>
             </div>
         </div>
 
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
     </div>
 
     <!-- 製品追加モーダル -->
@@ -490,66 +501,29 @@ textarea { resize: vertical; min-height: 80px; font-family: inherit; }
 
     <script>
 // ========================================
-// データ構造
+// データ構造 & API設定
 // ========================================
 
+// S3署名付きURLを発行するAPI GatewayのベースURL（CDKデプロイ後に置き換えてください）
+const API_BASE = 'https://vvxdlcle1f.execute-api.ap-northeast-1.amazonaws.com';
+// このツールのデータ格納用プレフィックス
+const TOOL_ID = 'production-plan';
+
 // 製品マスタ（クッキーそのもの）
-let cookies = [
-    { id: 1, name: 'バニラクッキー' },
-    { id: 2, name: 'チョコクッキー' },
-    { id: 3, name: '紅芋クッキー' },
-    { id: 4, name: '黒糖クッキー' },
-    { id: 5, name: 'マンゴークッキー' }
-];
+let cookies = [];
 
 // 商品マスタ（袋詰め製品）
 // ingredients: { cookieId: quantity }
-let products = [
-    { 
-        id: 1, 
-        name: 'バニラクッキー12個入り', 
-        baseWeeklyDemand: 20,
-        currentStock: 10,
-        safetyStock: 8,
-        ingredients: { 1: 12 } // バニラクッキー12個
-    },
-    { 
-        id: 2, 
-        name: 'チョコクッキー10個入り', 
-        baseWeeklyDemand: 25,
-        currentStock: 15,
-        safetyStock: 10,
-        ingredients: { 2: 10 } // チョコクッキー10個
-    },
-    { 
-        id: 3, 
-        name: '沖縄詰め合わせ15個入り', 
-        baseWeeklyDemand: 30,
-        currentStock: 20,
-        safetyStock: 12,
-        ingredients: { 3: 5, 4: 5, 5: 5 } // 紅芋5、黒糖5、マンゴー5
-    },
-    { 
-        id: 4, 
-        name: 'バニラ&チョコミックス20個入り', 
-        baseWeeklyDemand: 15,
-        currentStock: 8,
-        safetyStock: 6,
-        ingredients: { 1: 10, 2: 10 } // バニラ10、チョコ10
-    }
-];
+let products = [];
 
 // 需要予測係数
 let demandFactors = { weather: 1.0, season: 1.15, event: 1.0, tourist: 1.05 };
 
 // オーブン設定（配列で複数管理）
-let ovens = [
-    { id: 1, name: 'オーブン1号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 },
-    { id: 2, name: 'オーブン2号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 }
-];
+let ovens = [];
 
 // オーブンID用カウンター
-let nextOvenId = 3;
+let nextOvenId = 1;
 
 // シフト重み
 let shiftWeights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
@@ -567,8 +541,8 @@ let tempIngredients = {};
 let editingProductId = null;
 
 // ID生成用カウンター
-let nextCookieId = 6;
-let nextProductId = 5;
+let nextCookieId = 1;　
+let nextProductId = 1;
 
 // ========================================
 // 初期化
@@ -581,6 +555,8 @@ document.addEventListener('DOMContentLoaded', function() {
     updateOvensList();
     updateCapacity();
     updateAll();
+    // API_BASEが設定されている場合のみS3から最新データを取得
+    loadLatestFromCloud();
 });
 
 // ========================================
@@ -1683,83 +1659,187 @@ function importData(event) {
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            
-            // バージョン2.1（オーブン配列対応）
-            if (data.version === 2.1) {
-                cookies = data.cookies || [];
-                products = data.products || [];
-                demandFactors = data.demandFactors || { weather: 1.0, season: 1.15, event: 1.0, tourist: 1.05 };
-                ovens = data.ovens || [{ id: 1, name: 'オーブン1号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 }];
-                shiftWeights = data.shiftWeights || [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-                bulkOrders = data.bulkOrders || [];
-                nextCookieId = data.nextCookieId || 1;
-                nextProductId = data.nextProductId || 1;
-                nextOvenId = data.nextOvenId || 1;
-                
-                // シフト設定のUI更新
-                document.getElementById('mondayWeight').value = shiftWeights[0];
-                document.getElementById('tuesdayWeight').value = shiftWeights[1];
-                document.getElementById('wednesdayWeight').value = shiftWeights[2];
-                document.getElementById('thursdayWeight').value = shiftWeights[3];
-                document.getElementById('fridayWeight').value = shiftWeights[4];
-                document.getElementById('saturdayWeight').value = shiftWeights[5];
-            }
-            // バージョン2.0（旧形式）の互換性対応
-            else if (data.version === 2) {
-                cookies = data.cookies || [];
-                products = data.products || [];
-                demandFactors = data.demandFactors || { weather: 1.0, season: 1.15, event: 1.0, tourist: 1.05 };
-                bulkOrders = data.bulkOrders || [];
-                nextCookieId = data.nextCookieId || 1;
-                nextProductId = data.nextProductId || 1;
-                
-                // 旧形式のオーブン設定を配列に変換
-                if (data.ovenSettings) {
-                    ovens = [];
-                    for (let i = 0; i < data.ovenSettings.ovenCount; i++) {
-                        ovens.push({
-                            id: i + 1,
-                            name: `オーブン${i + 1}号機`,
-                            piecesPerBatch: data.ovenSettings.piecesPerBatch,
-                            workingHours: data.ovenSettings.workingHours,
-                            batchDuration: data.ovenSettings.batchDuration
-                        });
-                    }
-                    nextOvenId = data.ovenSettings.ovenCount + 1;
-                } else {
-                    ovens = [{ id: 1, name: 'オーブン1号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 }];
-                    nextOvenId = 2;
-                }
-                
-                shiftWeights = data.shiftWeights || [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-                
-                // シフト設定のUI更新
-                document.getElementById('mondayWeight').value = shiftWeights[0];
-                document.getElementById('tuesdayWeight').value = shiftWeights[1];
-                document.getElementById('wednesdayWeight').value = shiftWeights[2];
-                document.getElementById('thursdayWeight').value = shiftWeights[3];
-                document.getElementById('fridayWeight').value = shiftWeights[4];
-                document.getElementById('saturdayWeight').value = shiftWeights[5];
-            } else {
-                alert('サポートされていないデータ形式です。');
-                return;
-            }
-            
-            updateCookieList();
-            updateProductList();
-            initializeProductSelection();
-            updateBulkOrdersList();
-            updateOvensList();
-            updateCapacity();
-            updateAll();
-            
-            showNotification('データを読み込みました。', 'success');
+            applyLoadedData(data, true);
         } catch (error) {
             console.error('データ読み込みエラー:', error);
             alert('データの読み込みに失敗しました。');
         }
     };
     reader.readAsText(file, 'UTF-8');
+}
+
+// ========================================
+// データ保存・読込（S3経由）
+// ========================================
+
+function applyLoadedData(data, showToast = true) {
+    // バージョン2.1（オーブン配列対応）
+    if (data.version === 2.1) {
+        cookies = data.cookies || [];
+        products = data.products || [];
+        demandFactors = data.demandFactors || { weather: 1.0, season: 1.15, event: 1.0, tourist: 1.05 };
+        ovens = data.ovens || [{ id: 1, name: 'オーブン1号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 }];
+        shiftWeights = data.shiftWeights || [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+        bulkOrders = data.bulkOrders || [];
+        nextCookieId = data.nextCookieId || 1;
+        nextProductId = data.nextProductId || 1;
+        nextOvenId = data.nextOvenId || 1;
+        
+        // シフト設定のUI更新
+        document.getElementById('mondayWeight').value = shiftWeights[0];
+        document.getElementById('tuesdayWeight').value = shiftWeights[1];
+        document.getElementById('wednesdayWeight').value = shiftWeights[2];
+        document.getElementById('thursdayWeight').value = shiftWeights[3];
+        document.getElementById('fridayWeight').value = shiftWeights[4];
+        document.getElementById('saturdayWeight').value = shiftWeights[5];
+    }
+    // バージョン2.0（旧形式）の互換性対応
+    else if (data.version === 2) {
+        cookies = data.cookies || [];
+        products = data.products || [];
+        demandFactors = data.demandFactors || { weather: 1.0, season: 1.15, event: 1.0, tourist: 1.05 };
+        bulkOrders = data.bulkOrders || [];
+        nextCookieId = data.nextCookieId || 1;
+        nextProductId = data.nextProductId || 1;
+        
+        // 旧形式のオーブン設定を配列に変換
+        if (data.ovenSettings) {
+            ovens = [];
+            for (let i = 0; i < data.ovenSettings.ovenCount; i++) {
+                ovens.push({
+                    id: i + 1,
+                    name: `オーブン${i + 1}号機`,
+                    piecesPerBatch: data.ovenSettings.piecesPerBatch,
+                    workingHours: data.ovenSettings.workingHours,
+                    batchDuration: data.ovenSettings.batchDuration
+                });
+            }
+            nextOvenId = data.ovenSettings.ovenCount + 1;
+        } else {
+            ovens = [{ id: 1, name: 'オーブン1号機', piecesPerBatch: 150, workingHours: 8, batchDuration: 45 }];
+            nextOvenId = 2;
+        }
+        
+        shiftWeights = data.shiftWeights || [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+        
+        // シフト設定のUI更新
+        document.getElementById('mondayWeight').value = shiftWeights[0];
+        document.getElementById('tuesdayWeight').value = shiftWeights[1];
+        document.getElementById('wednesdayWeight').value = shiftWeights[2];
+        document.getElementById('thursdayWeight').value = shiftWeights[3];
+        document.getElementById('fridayWeight').value = shiftWeights[4];
+        document.getElementById('saturdayWeight').value = shiftWeights[5];
+    } else {
+        throw new Error('サポートされていないデータ形式です。');
+    }
+    
+    updateCookieList();
+    updateProductList();
+    initializeProductSelection();
+    updateBulkOrdersList();
+    updateOvensList();
+    updateCapacity();
+    updateAll();
+    
+    if (showToast) {
+        showNotification('データを読み込みました。', 'success');
+    }
+}
+
+async function saveDataToCloud() {
+    if (!API_BASE || API_BASE.includes('YOUR_API_ID')) {
+        showNotification('API_BASE をCDKデプロイ後のURLに設定してください。', 'warning');
+        return;
+    }
+    setLoading(true);
+    
+    const data = {
+        version: 2.1,
+        cookies: cookies,
+        products: products,
+        demandFactors: demandFactors,
+        ovens: ovens,
+        shiftWeights: shiftWeights,
+        bulkOrders: bulkOrders,
+        nextCookieId: nextCookieId,
+        nextProductId: nextProductId,
+        nextOvenId: nextOvenId
+    };
+    
+    try {
+        const signRes = await fetch(`${API_BASE}/sign-upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool: TOOL_ID })
+        });
+        
+        if (!signRes.ok) {
+            throw new Error('署名付きURLの取得に失敗しました');
+        }
+        const { uploadUrl, key, latestPutUrl } = await signRes.json();
+        
+        await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (latestPutUrl) {
+            await fetch(latestPutUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+                body: JSON.stringify({ key, updatedAt: new Date().toISOString() })
+            });
+        }
+        
+        showNotification('S3へ保存しました。', 'success');
+    } catch (error) {
+        console.error('保存エラー', error);
+        showNotification('S3保存に失敗しました。', 'error');
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function loadLatestFromCloud() {
+    if (!API_BASE || API_BASE.includes('YOUR_API_ID')) {
+        return; // 未設定時はスキップ
+    }
+    setLoading(true);
+    
+    try {
+        const res = await fetch(`${API_BASE}/latest?tool=${encodeURIComponent(TOOL_ID)}`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-store' }
+        });
+        
+        if (res.status === 404) {
+            console.info('S3に最新データがまだありません。初期データを使用します。');
+            return;
+        }
+        
+        if (!res.ok) {
+            throw new Error('latest API呼び出しに失敗');
+        }
+        
+        const meta = await res.json();
+        if (!meta.dataUrl) {
+            throw new Error('dataUrlが取得できませんでした');
+        }
+        
+        const dataRes = await fetch(meta.dataUrl, { method: 'GET', cache: 'no-store' });
+        if (!dataRes.ok) {
+            throw new Error('データの取得に失敗しました');
+        }
+        const payload = await dataRes.json();
+        applyLoadedData(payload, false);
+        showNotification('S3から最新データを読み込みました。', 'success');
+    } catch (error) {
+        console.error('ロードエラー', error);
+        showNotification('S3からの読み込みに失敗しました。', 'warning');
+    } finally {
+        setLoading(false);
+    }
 }
 
 // ========================================
@@ -1809,6 +1889,19 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }
     }, 3000);
+}
+
+// ========================================
+// ローディングオーバーレイ
+// ========================================
+function setLoading(isLoading) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (!overlay) return;
+    if (isLoading) {
+        overlay.classList.add('show');
+    } else {
+        overlay.classList.remove('show');
+    }
 }
 
     </script>

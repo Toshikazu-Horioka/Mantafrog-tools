@@ -16,7 +16,7 @@
         .section-header:hover { background: #f1f3f5; }
         .section-content { padding: 24px; }
         .section-content.hidden { display: none; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 6px; font-size: 17px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: none; border-radius: 6px; font-size: 17px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
         .btn-primary { background: #5a6c7d; color: white; } .btn-primary:hover { background: #4a5a6a; }
         .btn-green { background: #52796f; color: white; } .btn-green:hover { background: #42695f; }
         .btn-red { background: #a8625f; color: white; } .btn-red:hover { background: #98524f; }
@@ -25,7 +25,7 @@
         .btn-yellow { background: #c4a563; color: white; } .btn-yellow:hover { background: #b49553; }
         .btn-gray { background: #8b9ba8; color: white; } .btn-gray:hover { background: #7b8b98; }
         .btn-cyan { background: #6b8e9f; color: white; } .btn-cyan:hover { background: #5b7e8f; }
-        .btn-sm { padding: 8px 16px; font-size: 16px; }
+        .btn-sm { padding: 6px 12px; font-size: 15px; gap: 4px; }
         .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1px solid #ced4da; border-radius: 5px; font-size: 17px; color: #495057; }
         .form-input:focus, .form-select:focus { outline: none; border-color: #5a6c7d; }
         .form-label { display: block; font-size: 17px; font-weight: 500; color: #495057; margin-bottom: 6px; }
@@ -43,7 +43,7 @@
         .stat-card { background: white; border-radius: 8px; padding: 24px; text-align: center; border: 1px solid #e9ecef; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .stat-value { font-size: 40px; font-weight: 600; margin-bottom: 8px; color: #5a6c7d; }
         .stat-label { font-size: 16px; color: #6c757d; font-weight: 500; }
-        .product-card { background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .product-card { background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
         .badge { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 15px; font-weight: 500; }
         .badge-green { background: #d4e4df; color: #2d5a4c; }
         .badge-blue { background: #d6e4ed; color: #3a5569; }
@@ -91,6 +91,10 @@
         @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .clickable-product { cursor: pointer; color: #5a6c7d; text-decoration: none; font-weight: 500; font-size: 18px; }
         .clickable-product:hover { color: #4a5a6a; text-decoration: underline; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .loading-overlay.show { display: flex; }
+        .loading-spinner { width: 64px; height: 64px; border: 6px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .recipe-item { background: #fafbfc; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin-bottom: 10px; font-size: 17px; }
         .preset-card { background: white; border: 2px solid #e9ecef; border-radius: 8px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; font-size: 17px; }
         .preset-card:hover { border-color: #5a6c7d; background: #f8f9fa; }
@@ -111,29 +115,86 @@
 
         <div class="section">
             <button class="section-header" onclick="toggleSection('dashboard')">
-                <span>📊 原価ダッシュボード</span>
+                <span>📊 原価ダッシュボード - 商品一覧</span>
                 <span id="dashboard-chevron">▼</span>
             </button>
             <div class="section-content" id="dashboard-content">
                 <div class="info-box">
-                    💡 <strong>製品名をクリック</strong>してレシピを編集できます<br>
-                    💡 <strong>単位原価</strong>: 最新の仕入れ価格から自動計算された1個あたりの製造原価
+                    💡 <strong>商品名をクリック</strong>して詳細を確認できます<br>
+                    💡 <strong>原価</strong>: 商品1個（1箱）あたりの製造原価（製品+包材）<br>
+                    💡 <strong>粗利率</strong>: (販売価格 - 原価) / 販売価格 × 100%
                 </div>
                 <div class="stats-grid">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #b8956a, #9d7e5a); color: white;"><div class="stat-value" id="total-packages" style="color: white;">0</div><div class="stat-label" style="color: white;">登録商品数</div></div>
                     <div class="stat-card"><div class="stat-value" id="total-products">0</div><div class="stat-label">登録製品数</div></div>
-                    <div class="stat-card"><div class="stat-value" id="total-batches">0</div><div class="stat-label">製造ロット数</div></div>
                     <div class="stat-card"><div class="stat-value" id="total-materials">0</div><div class="stat-label">材料種類数</div></div>
                     <div class="stat-card"><div class="stat-value" id="active-ingredients">0</div><div class="stat-label">アクティブ仕入</div></div>
                 </div>
                 <div class="table-container">
                     <table class="table">
-                        <thead><tr><th>製品名</th><th>SKU</th><th>レシピ</th><th class="text-right">単位原価</th><th>収益情報</th><th class="text-center">操作</th></tr></thead>
+                        <thead><tr><th>商品名</th><th>SKU</th><th>内容</th><th class="text-right">原価</th><th class="text-right">販売価格</th><th class="text-right">粗利率</th><th class="text-center">操作</th></tr></thead>
                         <tbody id="dashboard-table-body"></tbody>
                     </table>
                 </div>
-                <div class="flex justify-between">
-                    <button class="btn btn-cyan" onclick="showRecipePresetManager()">📋 レシピプリセット管理</button>
-                    <button class="btn btn-green" onclick="showAddProductModal()">➕ 新製品追加</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <button class="section-header" onclick="toggleSection('packages')">
+                <span>🎁 商品管理（詰め合わせパッケージ）</span>
+                <span id="packages-chevron">▼</span>
+            </button>
+            <div class="section-content" id="packages-content">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="font-bold text-lg">商品パッケージ管理</h3>
+                        <p class="text-sm text-gray">複数の製品（クッキー）と包材を組み合わせた商品を管理</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                        <button class="btn btn-cyan" style="white-space: nowrap;" onclick="showPackagePresetManager()">📋 プリセット管理</button>
+                        <button class="btn btn-green" style="white-space: nowrap;" onclick="showAddPackageModal()">➕ 商品追加</button>
+                    </div>
+                </div>
+
+                <div class="info-box" style="margin-bottom: 20px;">
+                    💡 <strong>商品</strong>: 複数の製品（クッキー）+ 包材（箱・袋など）を組み合わせたパッケージ<br>
+                    💡 商品の原価は、含まれる製品と包材の原価から自動計算されます
+                </div>
+
+                <div id="packages-list">
+                    <!-- 商品一覧がここに表示されます -->
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <button class="section-header" onclick="toggleSection('products')">
+                <span>🍪 製品管理（クッキー単品）</span>
+                <span id="products-chevron">▼</span>
+            </button>
+            <div class="section-content" id="products-content">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="font-bold text-lg">製品（クッキー単品）管理</h3>
+                        <p class="text-sm text-gray">クッキー1個あたりのレシピと原価を管理</p>
+                    </div>
+                    <button class="btn btn-green" onclick="showAddProductModal()">➕ 新しい製品を追加</button>
+                </div>
+
+                <div class="info-box" style="margin-bottom: 20px;">
+                    💡 <strong>製品</strong>: クッキー1個のこと。材料から作られます<br>
+                    💡 製品の原価は、材料の仕入れ価格から自動計算されます
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead><tr><th>製品名</th><th>SKU</th><th>レシピ</th><th class="text-right">1個あたり原価</th><th class="text-center">操作</th></tr></thead>
+                        <tbody id="products-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between" style="margin-top: 16px;">
+                    <button class="btn btn-cyan" onclick="showRecipePresetManager()">📋 製品プリセット管理</button>
                 </div>
             </div>
         </div>
@@ -206,8 +267,9 @@
                 <div class="product-card">
                     <h4 class="font-bold mb-4">💾 データ管理</h4>
                     <div class="grid grid-2">
-                        <div><button class="btn btn-green" onclick="exportData()">📤 データエクスポート</button><p class="text-sm text-gray" style="margin-top: 8px;">全データをJSONファイルでエクスポート</p></div>
+                        <div><button class="btn btn-green" onclick="saveDataToCloud()">☁️ データ保存</button><p class="text-sm text-gray" style="margin-top: 8px;">データを保存</p></div>
                         <div><input type="file" id="import-file" accept=".json" style="display: none;"><button class="btn btn-primary" onclick="document.getElementById('import-file').click()">📥 データインポート</button><p class="text-sm text-gray" style="margin-top: 8px;">JSONファイルからデータをインポート</p></div>
+                        <div><button class="btn btn-gray" onclick="loadLatestFromCloud()">☁️ 最新データ取得</button><p class="text-sm text-gray" style="margin-top: 8px;">保存済み最新データを読み込み</p></div>
                     </div>
                 </div>
             </div>
@@ -217,13 +279,24 @@
     <div id="modal-container"></div>
     <div id="toast-container"></div>
 
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <script>
+        // S3署名付きURLを発行するAPI GatewayのベースURL（CDKデプロイ後に置き換え）
+        const API_BASE = 'https://vvxdlcle1f.execute-api.ap-northeast-1.amazonaws.com';
+        // このツールのデータ格納用プレフィックス
+        const TOOL_ID = 'cost-calculation';
+
         let products = [];
         let materials = [];
         let ingredients = [];
         let usedUpIngredients = [];
         let recipePresets = [];
-        let sections = { dashboard: true, materials: true };
+        let packages = [];  // 商品（詰め合わせ）データ
+        let packagePresets = [];  // ★追加: 商品プリセット
+        let sections = { dashboard: true, products: true, packages: true, materials: true };  // ★products追加
         let showUsedUp = false;
         let showSuspendedMaterials = false;
 
@@ -239,6 +312,23 @@
             return `${code}${String((ex[0] || 0) + 1).padStart(3, '0')}`;
         };
 
+        const genPackageSku = (baseSku) => {
+            if (!baseSku) return '';
+            // 既存の商品から同じベースSKUを持つものを検索
+            const existingSkus = packages
+                .map(p => p.sku)
+                .filter(sku => sku && sku.startsWith(baseSku))
+                .map(sku => {
+                    // 末尾の数字を抽出
+                    const match = sku.match(/-(\d+)$/);
+                    return match ? parseInt(match[1]) : 0;
+                })
+                .sort((a, b) => b - a);
+            
+            const nextNum = (existingSkus[0] || 0) + 1;
+            return `${baseSku}-${String(nextNum).padStart(3, '0')}`;
+        };
+
         function calculateProductCost(productId) {
             const product = products.find(p => p.id === productId);
             if (!product || !product.recipe || product.recipe.length === 0) return 0;
@@ -248,19 +338,32 @@
                 const material = materials.find(m => m.id === recipeItem.material_id);
                 if (!material) return;
                 
-                // 選択されたロットがある場合はそれを使用、なければ最新のロット
+                // ★修正: 使い切りロットも含めて検索
                 let selectedIngredient = null;
                 if (recipeItem.ingredient_id) {
+                    // まずアクティブなロットから探す
                     selectedIngredient = ingredients.find(i => i.id === recipeItem.ingredient_id);
+                    // 見つからない場合は使い切りロットからも探す
+                    if (!selectedIngredient) {
+                        selectedIngredient = usedUpIngredients.find(i => i.id === recipeItem.ingredient_id);
+                    }
                 }
                 
                 if (!selectedIngredient) {
+                    // まずアクティブなロットから最新を取得
                     const activeIngredients = ingredients.filter(i => i.material_id === recipeItem.material_id && i.qty > 0);
-                    if (activeIngredients.length === 0) return;
-                    selectedIngredient = activeIngredients.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    if (activeIngredients.length > 0) {
+                        selectedIngredient = activeIngredients.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    } else {
+                        // ★修正: アクティブなロットがない場合は使い切りロットから最新を取得
+                        const usedUpForMaterial = usedUpIngredients.filter(i => i.material_id === recipeItem.material_id);
+                        if (usedUpForMaterial.length > 0) {
+                            selectedIngredient = usedUpForMaterial.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                        }
+                    }
                 }
                 
-                if (selectedIngredient && selectedIngredient.qty > 0) {
+                if (selectedIngredient) {
                     const unitPrice = selectedIngredient.price / selectedIngredient.qty;
                     totalCost += unitPrice * recipeItem.quantity;
                 }
@@ -300,108 +403,14 @@
         }
 
         function initData() {
-            products = [
-                { 
-                    id: '1', 
-                    sku: 'CK-CHOCO-001', 
-                    name: 'チョコチップクッキー', 
-                    recipe: [
-                        { material_id: '1', quantity: 200, ingredient_id: '1' },
-                        { material_id: '2', quantity: 100, ingredient_id: '3' },
-                        { material_id: '3', quantity: 80, ingredient_id: '4' },
-                        { material_id: '4', quantity: 50, ingredient_id: '5' },
-                        { material_id: '6', quantity: 1, ingredient_id: '7' },
-                        { material_id: '7', quantity: 1, ingredient_id: '8' }
-                    ],
-                    pricing: { sellingPrice: 350, targetMargin: 0 }
-                },
-                { 
-                    id: '2', 
-                    sku: 'CK-BUTTR-001', 
-                    name: 'バタークッキー', 
-                    recipe: [
-                        { material_id: '1', quantity: 200, ingredient_id: '2' },
-                        { material_id: '2', quantity: 120, ingredient_id: '3' },
-                        { material_id: '3', quantity: 80, ingredient_id: '4' },
-                        { material_id: '6', quantity: 1, ingredient_id: '7' },
-                        { material_id: '7', quantity: 1, ingredient_id: '8' }
-                    ],
-                    pricing: { sellingPrice: 0, targetMargin: 45 }
-                },
-                { 
-                    id: '3', 
-                    sku: 'CK-ALMON-001', 
-                    name: 'アーモンドクッキー', 
-                    recipe: [
-                        { material_id: '1', quantity: 200, ingredient_id: '1' },
-                        { material_id: '2', quantity: 100, ingredient_id: '3' },
-                        { material_id: '3', quantity: 80, ingredient_id: '4' },
-                        { material_id: '5', quantity: 30, ingredient_id: '6' },
-                        { material_id: '6', quantity: 1, ingredient_id: '7' },
-                        { material_id: '7', quantity: 1, ingredient_id: '8' }
-                    ],
-                    pricing: { sellingPrice: 400, targetMargin: 0 }
-                }
-            ];
-            materials = [
-                { id: '1', name: '小麦粉(強力粉)', code: 'MT-FLR', type: 'material', category: '粉類', productName: '日清カメリヤ強力粉', status: 'active' },
-                { id: '2', name: 'バター(無塩)', code: 'MT-BUT', type: 'material', category: '乳製品', productName: 'よつ葉バター無塩450g', status: 'active' },
-                { id: '3', name: 'グラニュー糖', code: 'MT-SGR', type: 'material', category: '甘味料', productName: 'スプーン印グラニュー糖1kg', status: 'active' },
-                { id: '4', name: 'チョコチップ', code: 'MT-CHO', type: 'material', category: 'トッピング', productName: 'バンホーテンチョコチップ200g', status: 'active' },
-                { id: '5', name: 'アーモンドスライス', code: 'MT-ALM', type: 'material', category: 'ナッツ類', productName: 'カリフォルニア産アーモンドスライス', status: 'active' },
-                { id: '6', name: '卵', code: 'MT-EGG', type: 'material', category: '卵・乳製品', productName: '赤玉Lサイズ', status: 'active' },
-                { id: '7', name: 'プラスチック袋(小)', code: 'PK-BAG', type: 'packaging', category: '個包装', productName: 'OPP袋 透明 100×150mm', status: 'active' },
-                { id: '8', name: '紙箱(12枚入り)', code: 'PK-BOX', type: 'packaging', category: '外装', productName: 'ギフトボックス 中サイズ', status: 'active' }
-            ];
-            ingredients = [
-                { id: '1', material_id: '1', material_code: 'MT-FLR', lot_no: 'MT-FLR001', date: '2025-10-01', qty: 25000, price: 4500, unit: 'g', supplier: 'A製粉株式会社', expiry: '2026-09-30' },
-                { id: '2', material_id: '1', material_code: 'MT-FLR', lot_no: 'MT-FLR002', date: '2025-10-10', qty: 25000, price: 4600, unit: 'g', supplier: 'A製粉株式会社', expiry: '2026-10-09' },
-                { id: '3', material_id: '2', material_code: 'MT-BUT', lot_no: 'MT-BUT001', date: '2025-10-05', qty: 5000, price: 9800, unit: 'g', supplier: 'よつ葉乳業特約店', expiry: '2025-11-20' },
-                { id: '4', material_id: '3', material_code: 'MT-SGR', lot_no: 'MT-SGR001', date: '2025-09-15', qty: 10000, price: 1800, unit: 'g', supplier: 'B製糖商事', expiry: '2027-09-14' },
-                { id: '5', material_id: '4', material_code: 'MT-CHO', lot_no: 'MT-CHO001', date: '2025-10-03', qty: 2000, price: 3200, unit: 'g', supplier: 'C輸入食材', expiry: '2026-04-02' },
-                { id: '6', material_id: '5', material_code: 'MT-ALM', lot_no: 'MT-ALM001', date: '2025-10-08', qty: 1000, price: 2400, unit: 'g', supplier: 'D乾物問屋', expiry: '2026-10-07' },
-                { id: '7', material_id: '6', material_code: 'MT-EGG', lot_no: 'MT-EGG001', date: '2025-10-14', qty: 60, price: 480, unit: '個', supplier: 'E養鶏場直送', expiry: '2025-10-28' },
-                { id: '8', material_id: '7', material_code: 'PK-BAG', lot_no: 'PK-BAG001', date: '2025-09-20', qty: 5000, price: 12500, unit: '枚', supplier: 'F包装資材', expiry: '' },
-                { id: '9', material_id: '8', material_code: 'PK-BOX', lot_no: 'PK-BOX001', date: '2025-09-25', qty: 500, price: 30000, unit: '枚', supplier: 'G紙器製造', expiry: '' }
-            ];
+            // 初期データは空で開始
+            products = [];
+            materials = [];
+            ingredients = [];
             usedUpIngredients = [];
-            recipePresets = [
-                {
-                    id: 'preset-1',
-                    name: 'チョコチップクッキー（基本）',
-                    recipe: [
-                        { material_id: '1', quantity: 200 },
-                        { material_id: '2', quantity: 100 },
-                        { material_id: '3', quantity: 80 },
-                        { material_id: '4', quantity: 50 },
-                        { material_id: '6', quantity: 1 },
-                        { material_id: '7', quantity: 1 }
-                    ]
-                },
-                {
-                    id: 'preset-2',
-                    name: 'バタークッキー（基本）',
-                    recipe: [
-                        { material_id: '1', quantity: 200 },
-                        { material_id: '2', quantity: 120 },
-                        { material_id: '3', quantity: 80 },
-                        { material_id: '6', quantity: 1 },
-                        { material_id: '7', quantity: 1 }
-                    ]
-                },
-                {
-                    id: 'preset-3',
-                    name: 'アーモンドクッキー（基本）',
-                    recipe: [
-                        { material_id: '1', quantity: 200 },
-                        { material_id: '2', quantity: 100 },
-                        { material_id: '3', quantity: 80 },
-                        { material_id: '5', quantity: 30 },
-                        { material_id: '6', quantity: 1 },
-                        { material_id: '7', quantity: 1 }
-                    ]
-                }
-            ];
+            recipePresets = [];
+            packages = [];
+            packagePresets = [];
         }
 
         function showRecipeEditor(productId) {
@@ -557,8 +566,10 @@
                     const grossProfit = sellingPrice - cost;
                     const marginRate = (grossProfit / sellingPrice * 100).toFixed(1);
                     marginDisplay.style.display = 'block';
-                    marginDisplay.querySelector('div:nth-child(2)').textContent = `${marginRate}%`;
-                    marginDisplay.querySelector('div:nth-child(3)').textContent = `粗利額: ${fmt(grossProfit)}`;
+                    const marginRateEl = marginDisplay.querySelector('div:nth-child(2)');
+                    const grossProfitEl = marginDisplay.querySelector('div:nth-child(3)');
+                    if (marginRateEl) marginRateEl.textContent = `${marginRate}%`;
+                    if (grossProfitEl) grossProfitEl.textContent = `粗利額: ${fmt(grossProfit)}`;
                 } else {
                     marginDisplay.style.display = 'none';
                 }
@@ -571,8 +582,10 @@
                     const minPrice = cost / (1 - targetMargin / 100);
                     const targetProfit = minPrice - cost;
                     minPriceDisplay.style.display = 'block';
-                    minPriceDisplay.querySelector('div:nth-child(2)').textContent = fmt(minPrice);
-                    minPriceDisplay.querySelector('div:nth-child(3)').textContent = `目標粗利額: ${fmt(targetProfit)}`;
+                    const minPriceEl = minPriceDisplay.querySelector('div:nth-child(2)');
+                    const targetProfitEl = minPriceDisplay.querySelector('div:nth-child(3)');
+                    if (minPriceEl) minPriceEl.textContent = fmt(minPrice);
+                    if (targetProfitEl) targetProfitEl.textContent = `目標粗利額: ${fmt(targetProfit)}`;
                 } else {
                     minPriceDisplay.style.display = 'none';
                 }
@@ -718,7 +731,10 @@
             const cost = calculateProductCost(productId);
             const display = document.getElementById(`cost-display-${productId}`);
             if (display) {
-                display.querySelector('.cost-value').textContent = fmtDec(cost);
+                const costValueEl = display.querySelector('.cost-value');
+                if (costValueEl) {
+                    costValueEl.textContent = fmtDec(cost);
+                }
             }
         }
 
@@ -782,6 +798,11 @@
             const product = products.find(p => p.id === productId);
             const preset = recipePresets.find(pr => pr.id === presetId);
             if (!product || !preset) return;
+            
+            // ★修正: プリセットからSKU(製品コード)も自動設定
+            if (preset.sku && !product.sku) {
+                product.sku = preset.sku;
+            }
             
             product.recipe = JSON.parse(JSON.stringify(preset.recipe));
             renderRecipeList(productId);
@@ -1141,6 +1162,52 @@
             const nameInput = document.getElementById('product-name');
             if (nameInput) nameInput.focus();
             
+            // ★追加: プリセット選択時に製品名とSKUを自動入力
+            const presetSelect = document.getElementById('product-preset');
+            if (presetSelect) {
+                presetSelect.addEventListener('change', function() {
+                    const presetId = this.value;
+                    if (presetId) {
+                        const preset = recipePresets.find(p => p.id === presetId);
+                        if (preset) {
+                            // 製品名を自動入力
+                            const nameInput = document.getElementById('product-name');
+                            if (nameInput && !nameInput.value) {
+                                nameInput.value = preset.name.replace(/（基本）$/, '').trim();
+                            }
+                            
+                            // SKUを自動採番
+                            if (preset.sku) {
+                                const skuInput = document.getElementById('product-sku');
+                                if (skuInput) {
+                                    // プリセットのSKUから基本部分を取得 (例: CK-CHOCO-001 → CK-CHOCO-)
+                                    const baseSku = preset.sku.replace(/-\d+$/, '');
+                                    
+                                    // 同じ基本SKUを持つ製品を検索
+                                    const existingProducts = products.filter(p => 
+                                        p.sku && p.sku.startsWith(baseSku)
+                                    );
+                                    
+                                    // 最大の番号を取得
+                                    let maxNumber = 0;
+                                    existingProducts.forEach(p => {
+                                        const match = p.sku.match(/-(\d+)$/);
+                                        if (match) {
+                                            const num = parseInt(match[1]);
+                                            if (num > maxNumber) maxNumber = num;
+                                        }
+                                    });
+                                    
+                                    // 次の番号を生成
+                                    const nextNumber = String(maxNumber + 1).padStart(3, '0');
+                                    skuInput.value = `${baseSku}-${nextNumber}`;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
             const addBtn = document.getElementById('add-product-btn');
             if (addBtn) {
                 addBtn.onclick = () => {
@@ -1241,6 +1308,23 @@
         function deleteMaterial(id) {
             const m = materials.find(mat => mat.id === id);
             if (!m) return;
+            
+            // ★追加: アクティブな製品レシピで使用されているかチェック
+            const usedInProducts = products.filter(product => 
+                product.recipe && product.recipe.some(item => item.material_id === id)
+            );
+            
+            if (usedInProducts.length > 0) {
+                const productNames = usedInProducts.map(p => `・${p.name} (${p.sku})`).join('\n');
+                showConfirm('削除不可', 
+                    `材料「${m.name}」は以下の製品レシピで使用されています:\n\n${productNames}\n\nレシピから削除してから材料を削除してください。\n\n※使い切り履歴のみの場合は削除可能です。`, 
+                    () => {
+                        // OK押しても何もしない（削除しない）
+                    }
+                );
+                return;
+            }
+            
             const ri = ingredients.filter(i => i.material_id === id);
             const ru = usedUpIngredients.filter(i => i.material_id === id);
             
@@ -1351,25 +1435,1258 @@
             });
         }
 
-        function exportData() {
+        // ========== 商品管理機能 ==========
+
+        // 商品原価計算
+        function calculatePackageCost(packageId) {
+            const pkg = packages.find(p => p.id === packageId);
+            if (!pkg || !pkg.contents || pkg.contents.length === 0) return 0;
+            
+            let totalCost = 0;
+            
+            pkg.contents.forEach(item => {
+                // typeフィールドで製品か包材か判定（後方互換性のためproductIdもチェック）
+                const isProduct = item.type === 'product' || item.productId;
+                
+                if (isProduct) {
+                    // 製品の原価
+                    const productId = item.productId || item.itemId;
+                    const productCost = calculateProductCost(productId);
+                    totalCost += productCost * item.quantity;
+                } else if (item.type === 'material') {
+                    // 包材の原価（最新の仕入れロットから計算）
+                    const latestLot = ingredients.filter(i => i.material_id === item.itemId)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    
+                    if (latestLot && latestLot.qty > 0) {
+                        const unitPrice = latestLot.price / latestLot.qty;
+                        totalCost += unitPrice * item.quantity;
+                    }
+                }
+            });
+            
+            return totalCost;
+        }
+
+        // 商品一覧レンダリング
+        function renderPackages() {
+            const container = document.getElementById('packages-list');
+            if (!container) return;
+            
+            if (packages.length === 0) {
+                container.innerHTML = '<div class="empty-state">商品が登録されていません</div>';
+                return;
+            }
+            
+            container.innerHTML = packages.map(pkg => {
+                const totalCost = calculatePackageCost(pkg.id);
+                const sellingPrice = pkg.pricing?.sellingPrice || 0;
+                
+                // 製品の合計数を計算（type='product'のみ）
+                const totalProducts = pkg.contents
+                    .filter(item => item.type === 'product')
+                    .reduce((sum, item) => sum + item.quantity, 0);
+                
+                // 粗利計算
+                let marginRate = 0;
+                let grossProfit = 0;
+                if (sellingPrice > 0 && totalCost > 0) {
+                    grossProfit = sellingPrice - totalCost;
+                    marginRate = (grossProfit / sellingPrice * 100).toFixed(1);
+                }
+                
+                const marginColor = marginRate >= 50 ? '#52796f' : marginRate >= 30 ? '#b8956a' : '#a8625f';
+                
+                // 内容の簡潔な表示
+                const contentSummary = pkg.contents.map(item => {
+                    if (item.type === 'product') {
+                        const product = products.find(p => p.id === item.itemId);
+                        return product ? `${esc(product.name)}×${item.quantity}` : '';
+                    } else if (item.type === 'material') {
+                        const material = materials.find(m => m.id === item.itemId);
+                        return material ? `${esc(material.name)}×${item.quantity}` : '';
+                    }
+                    return '';
+                }).filter(Boolean).join(', ');
+                
+                return `
+                    <div class="product-card" style="padding: 14px 16px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <!-- 左: 商品情報 (40%) -->
+                            <div style="flex: 2; min-width: 0;">
+                                <div style="font-weight: 600; font-size: 17px; margin-bottom: 2px;">${esc(pkg.name)}</div>
+                                <div style="font-size: 13px; color: #6c757d; margin-bottom: 2px;">SKU: ${esc(pkg.sku)}</div>
+                                <div style="font-size: 13px; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contentSummary}</div>
+                            </div>
+                            
+                            <!-- 中央: 原価・売値 (25%) -->
+                            <div style="flex: 1; background: #f8f9fa; padding: 10px 12px; border-radius: 6px; display: flex; gap: 16px; justify-content: space-around;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 11px; color: #6c757d; margin-bottom: 2px;">原価</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #5a6c7d;">${fmt(totalCost)}</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 11px; color: #6c757d; margin-bottom: 2px;">売値</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #2c3e50;">${sellingPrice > 0 ? fmt(sellingPrice) : '—'}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 右: 粗利率 (20%) -->
+                            <div style="flex: 1; text-align: center;">
+                                ${sellingPrice > 0 ? `
+                                    <div style="background: linear-gradient(135deg, ${marginColor}15, ${marginColor}25); padding: 8px 12px; border-radius: 6px; border: 2px solid ${marginColor};">
+                                        <div style="font-size: 11px; color: #6c757d; margin-bottom: 2px;">粗利率</div>
+                                        <div style="font-size: 24px; font-weight: 700; color: ${marginColor}; line-height: 1;">${marginRate}%</div>
+                                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">${fmt(grossProfit)}</div>
+                                    </div>
+                                ` : `
+                                    <div style="padding: 8px 12px; background: #f1f3f5; border-radius: 6px;">
+                                        <div style="font-size: 13px; color: #6c757d;">売値未設定</div>
+                                    </div>
+                                `}
+                            </div>
+                            
+                            <!-- 右端: ボタン (15%) -->
+                            <div style="flex: 0 0 auto; display: flex; gap: 4px; flex-direction: column;">
+                                <button class="btn btn-cyan btn-sm" style="padding: 4px 8px; font-size: 13px;" onclick="showPricingSimulator('${pkg.id}')">💹</button>
+                                <button class="btn btn-purple btn-sm" style="padding: 4px 8px; font-size: 13px;" onclick="editPackage('${pkg.id}')">✏️</button>
+                                <button class="btn btn-red btn-sm" style="padding: 4px 8px; font-size: 13px;" onclick="deletePackage('${pkg.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 粗利シミュレーター
+        function showPricingSimulator(packageId) {
+            const pkg = packages.find(p => p.id === packageId);
+            if (!pkg) return;
+            
+            const totalCost = calculatePackageCost(pkg.id);
+            const currentPrice = pkg.pricing?.sellingPrice || 0;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 700px;">
+                    <div class="modal-header">💹 粗利シミュレーター - ${esc(pkg.name)}</div>
+                    <div class="modal-body">
+                        <div style="background: #f5ecd8; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 14px; color: #8d7540; margin-bottom: 4px;">商品原価</div>
+                            <div style="font-size: 36px; font-weight: 700; color: #7d5d3a;">${fmt(totalCost)}</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <!-- 目標粗利率から売値を計算 -->
+                            <div style="background: #e8f5e9; padding: 20px; border-radius: 8px;">
+                                <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #2d5a4c;">目標粗利率から計算</h4>
+                                <label class="form-label">目標粗利率 (%)</label>
+                                <input type="number" class="modal-input" id="target-margin" value="40" min="0" max="99" step="1" 
+                                       oninput="calculatePriceFromMargin('${pkg.id}')">
+                                <div id="price-from-margin" style="margin-top: 16px; padding: 16px; background: white; border-radius: 6px; text-align: center;">
+                                    <div style="font-size: 12px; color: #6c757d;">必要な売値</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #52796f;">—</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 売値から粗利率を計算 -->
+                            <div style="background: #e3f2fd; padding: 20px; border-radius: 8px;">
+                                <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #3a5569;">売値から計算</h4>
+                                <label class="form-label">販売価格 (円)</label>
+                                <input type="number" class="modal-input" id="target-price" value="${currentPrice}" min="0" step="1" 
+                                       oninput="calculateMarginFromPrice('${pkg.id}')">
+                                <div id="margin-from-price" style="margin-top: 16px; padding: 16px; background: white; border-radius: 6px; text-align: center;">
+                                    <div style="font-size: 12px; color: #6c757d;">達成される粗利率</div>
+                                    <div style="font-size: 28px; font-weight: 700; color: #5a6c7d;">—</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #fff3e0; padding: 16px; border-radius: 6px;">
+                            <strong>💡 売値を更新しますか？</strong>
+                            <div style="margin-top: 12px;">
+                                <label class="form-label">新しい販売価格</label>
+                                <input type="number" class="modal-input" id="new-selling-price" value="${currentPrice}" min="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">閉じる</button>
+                        <button class="btn btn-green" onclick="updatePackagePrice('${pkg.id}')">売値を更新</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            
+            // 初期計算
+            calculatePriceFromMargin(pkg.id);
+            calculateMarginFromPrice(pkg.id);
+        }
+
+        function calculatePriceFromMargin(packageId) {
+            const pkg = packages.find(p => p.id === packageId);
+            if (!pkg) return;
+            
+            const totalCost = calculatePackageCost(pkg.id);
+            const marginInput = document.getElementById('target-margin');
+            const resultDiv = document.getElementById('price-from-margin');
+            
+            if (!marginInput || !resultDiv) return;
+            
+            const targetMargin = parseFloat(marginInput.value) || 0;
+            if (targetMargin <= 0 || targetMargin >= 100) {
+                resultDiv.innerHTML = `
+                    <div style="font-size: 12px; color: #6c757d;">必要な売値</div>
+                    <div style="font-size: 28px; font-weight: 700; color: #52796f;">—</div>
+                `;
+                return;
+            }
+            
+            const requiredPrice = totalCost / (1 - targetMargin / 100);
+            const grossProfit = requiredPrice - totalCost;
+            
+            resultDiv.innerHTML = `
+                <div style="font-size: 12px; color: #6c757d;">必要な売値</div>
+                <div style="font-size: 28px; font-weight: 700; color: #52796f;">${fmt(requiredPrice)}</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">粗利額: ${fmt(grossProfit)}</div>
+            `;
+            
+            // 新しい販売価格欄にも反映
+            const newPriceInput = document.getElementById('new-selling-price');
+            if (newPriceInput) {
+                newPriceInput.value = Math.ceil(requiredPrice);
+            }
+        }
+
+        function calculateMarginFromPrice(packageId) {
+            const pkg = packages.find(p => p.id === packageId);
+            if (!pkg) return;
+            
+            const totalCost = calculatePackageCost(pkg.id);
+            const priceInput = document.getElementById('target-price');
+            const resultDiv = document.getElementById('margin-from-price');
+            
+            if (!priceInput || !resultDiv) return;
+            
+            const sellingPrice = parseFloat(priceInput.value) || 0;
+            if (sellingPrice <= totalCost) {
+                resultDiv.innerHTML = `
+                    <div style="font-size: 12px; color: #6c757d;">達成される粗利率</div>
+                    <div style="font-size: 28px; font-weight: 700; color: #a8625f;">赤字</div>
+                `;
+                return;
+            }
+            
+            const grossProfit = sellingPrice - totalCost;
+            const marginRate = (grossProfit / sellingPrice * 100).toFixed(1);
+            const marginColor = marginRate >= 50 ? '#52796f' : marginRate >= 30 ? '#b8956a' : '#a8625f';
+            
+            resultDiv.innerHTML = `
+                <div style="font-size: 12px; color: #6c757d;">達成される粗利率</div>
+                <div style="font-size: 28px; font-weight: 700; color: ${marginColor};">${marginRate}%</div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">粗利額: ${fmt(grossProfit)}</div>
+            `;
+            
+            // 新しい販売価格欄にも反映
+            const newPriceInput = document.getElementById('new-selling-price');
+            if (newPriceInput) {
+                newPriceInput.value = Math.ceil(sellingPrice);
+            }
+        }
+
+        function updatePackagePrice(packageId) {
+            const pkg = packages.find(p => p.id === packageId);
+            if (!pkg) return;
+            
+            const newPriceInput = document.getElementById('new-selling-price');
+            if (!newPriceInput) return;
+            
+            const newPrice = parseFloat(newPriceInput.value) || 0;
+            if (newPrice < 0) {
+                showToast('有効な価格を入力してください', true);
+                return;
+            }
+            
+            if (!pkg.pricing) pkg.pricing = {};
+            pkg.pricing.sellingPrice = newPrice;
+            
+            document.querySelector('.modal-overlay').remove();
+            renderAll();
+            showToast('販売価格を更新しました');
+        }
+
+        // 商品追加モーダル
+        function showAddPackageModal(presetId = null) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 800px;">
+                    <div class="modal-header">新しい商品を追加</div>
+                    <div class="modal-body">
+                        ${packagePresets.length > 0 ? `
+                        <div class="info-box" style="margin-bottom: 16px;">
+                            <label class="form-label">📋 プリセットから選択（オプション）</label>
+                            <select class="form-select" id="package-preset-select" onchange="applyPackagePreset(this.value)">
+                                <option value="">-- プリセットを選択 --</option>
+                                ${packagePresets.map(p => `
+                                    <option value="${p.id}" ${p.id === presetId ? 'selected' : ''}>
+                                        ${esc(p.name)} ${p.sku ? `(${esc(p.sku)})` : ''}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
+                        
+                        <label class="form-label">商品名</label>
+                        <input type="text" class="modal-input" id="package-name" placeholder="例: アソートギフトボックス 12個入り" oninput="autoGeneratePackageSku()">
+                        
+                        <label class="form-label">商品コード (SKU) <span class="text-sm text-gray">※商品名から自動生成されます</span></label>
+                        <input type="text" class="modal-input" id="package-sku" placeholder="例: BOX-ASSORT-001">
+                        
+                        <label class="form-label">説明 (オプション)</label>
+                        <input type="text" class="modal-input" id="package-description" placeholder="例: 3種類のクッキー詰め合わせ">
+                        
+                        <div style="margin: 20px 0; padding-top: 16px; border-top: 2px solid #e9ecef;">
+                            <div class="flex justify-between items-center" style="margin-bottom: 12px;">
+                                <strong style="font-size: 18px;">📦 内容構成</strong>
+                                <button class="btn btn-primary btn-sm" onclick="addPackageContentItem()">+ 製品を追加</button>
+                            </div>
+                            <div id="package-contents">
+                                <!-- 内容アイテムがここに表示されます -->
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f5ecd8; padding: 16px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 14px; color: #8d7540;">合計原価</div>
+                            <div id="package-total-cost" style="font-size: 28px; font-weight: 700; color: #7d5d3a;">¥0</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" id="save-package-btn">保存</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            
+            // 初期状態で1つのコンテンツアイテムを追加
+            window.packageContents = [];
+            addPackageContentItem();
+            
+            // 保存ボタン
+            document.getElementById('save-package-btn').onclick = () => {
+                const name = document.getElementById('package-name').value.trim();
+                const sku = document.getElementById('package-sku').value.trim().toUpperCase();
+                const description = document.getElementById('package-description').value.trim();
+                
+                if (!name || !sku) {
+                    showToast('商品名とSKUを入力してください', true);
+                    return;
+                }
+                
+                if (window.packageContents.length === 0) {
+                    showToast('少なくとも1つの製品を追加してください', true);
+                    return;
+                }
+                
+                // 全ての製品が選択され、数量が入力されているかチェック
+                const invalid = window.packageContents.filter(item => !item.productId || item.quantity <= 0);
+                if (invalid.length > 0) {
+                    showToast('すべての製品を選択し、数量を入力してください', true);
+                    return;
+                }
+                
+                const newPackage = {
+                    id: genId(),
+                    sku: sku,
+                    name: name,
+                    description: description,
+                    contents: window.packageContents.map(item => ({
+                        type: 'product',
+                        itemId: item.productId,
+                        quantity: item.quantity
+                    })),
+                    pricing: { 
+                        sellingPrice: window.presetSellingPrice || 0, 
+                        targetMargin: 0 
+                    }
+                };
+                
+                // プリセット売値をリセット
+                window.presetSellingPrice = 0;
+                
+                packages.push(newPackage);
+                modal.remove();
+                renderAll();
+                showToast('商品を追加しました');
+            };
+            
+            // プリセットが指定されている場合は適用
+            if (presetId) {
+                setTimeout(() => applyPackagePreset(presetId), 100);
+            }
+        }
+
+        function autoGeneratePackageSku() {
+            const nameInput = document.getElementById('package-name');
+            const skuInput = document.getElementById('package-sku');
+            
+            if (!nameInput || !skuInput) return;
+            
+            const name = nameInput.value.trim();
+            if (!name) {
+                skuInput.value = '';
+                return;
+            }
+            
+            // 商品名からベースSKUを生成（最初の10文字まで、英数字のみ）
+            const baseSku = 'BOX-' + name
+                .substring(0, 10)
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')
+                .substring(0, 8);
+            
+            // 自動採番
+            const generatedSku = genPackageSku(baseSku);
+            skuInput.value = generatedSku;
+        }
+
+        function applyPackagePreset(presetId) {
+            if (!presetId) return;
+            
+            const preset = packagePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            // フィールドに値を設定
+            const nameInput = document.getElementById('package-name');
+            const skuInput = document.getElementById('package-sku');
+            
+            if (nameInput && !nameInput.value) {
+                nameInput.value = preset.name;
+            }
+            if (skuInput && !skuInput.value) {
+                skuInput.value = preset.sku || '';
+            }
+            
+            // 売値を保存（新規作成時に使用）
+            window.presetSellingPrice = preset.sellingPrice || 0;
+            
+            // コンテンツを設定（製品のみ）
+            window.packageContents = [];
+            if (preset.contents) {
+                preset.contents.forEach(item => {
+                    if (item.type === 'product') {
+                        window.packageContents.push({
+                            productId: item.itemId,
+                            quantity: item.quantity
+                        });
+                    }
+                });
+            }
+            
+            renderPackageContents();
+            showToast('プリセットを適用しました');
+        }
+
+        // 商品コンテンツアイテム追加
+        function addPackageContentItem() {
+            if (products.length === 0) {
+                showToast('先に製品を登録してください', true);
+                return;
+            }
+            
+            const index = window.packageContents.length;
+            window.packageContents.push({ productId: '', quantity: 1 });
+            
+            renderPackageContents();
+        }
+
+        // 商品コンテンツレンダリング
+        function renderPackageContents() {
+            const container = document.getElementById('package-contents');
+            if (!container) return;
+            
+            if (window.packageContents.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray" style="padding: 20px;">製品を追加してください</div>';
+                return;
+            }
+            
+            container.innerHTML = window.packageContents.map((item, index) => {
+                const selectedProduct = products.find(p => p.id === item.productId);
+                const unitCost = item.productId ? calculateProductCost(item.productId) : 0;
+                const subtotal = unitCost * (item.quantity || 0);
+                
+                return `
+                    <div style="background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: center;">
+                            <div>
+                                <label class="form-label" style="margin-bottom: 4px;">製品</label>
+                                <select class="form-select" onchange="updatePackageContent(${index}, 'productId', this.value)">
+                                    <option value="">-- 製品を選択 --</option>
+                                    ${products.map(p => `
+                                        <option value="${p.id}" ${p.id === item.productId ? 'selected' : ''}>
+                                            ${esc(p.name)} (${esc(p.sku)})
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" style="margin-bottom: 4px;">数量</label>
+                                <input type="number" class="form-input" value="${item.quantity}" min="1" 
+                                       onchange="updatePackageContent(${index}, 'quantity', parseInt(this.value) || 1)"
+                                       style="text-align: center;">
+                            </div>
+                            <div style="text-align: right; padding-top: 24px;">
+                                <button class="btn btn-red btn-sm" onclick="removePackageContent(${index})">削除</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between;">
+                            <div class="text-sm text-gray">単価: ${fmt(unitCost)}</div>
+                            <div class="font-bold text-orange">小計: ${fmt(subtotal)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            updatePackageTotalCost();
+        }
+
+        // 商品コンテンツ更新
+        function updatePackageContent(index, field, value) {
+            if (window.packageContents[index]) {
+                window.packageContents[index][field] = field === 'quantity' ? (parseInt(value) || 1) : value;
+                renderPackageContents();
+            }
+        }
+
+        // 商品コンテンツ削除
+        function removePackageContent(index) {
+            window.packageContents.splice(index, 1);
+            renderPackageContents();
+        }
+
+        // 商品合計原価更新
+        function updatePackageTotalCost() {
+            const totalCostElement = document.getElementById('package-total-cost');
+            if (!totalCostElement) return;
+            
+            let totalCost = 0;
+            window.packageContents.forEach(item => {
+                if (item.productId && item.quantity > 0) {
+                    const unitCost = calculateProductCost(item.productId);
+                    totalCost += unitCost * item.quantity;
+                }
+            });
+            
+            totalCostElement.textContent = fmt(totalCost);
+        }
+
+        // 商品編集
+        function editPackage(id) {
+            const pkg = packages.find(p => p.id === id);
+            if (!pkg) return;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 800px;">
+                    <div class="modal-header">商品を編集</div>
+                    <div class="modal-body">
+                        <label class="form-label">商品名</label>
+                        <input type="text" class="modal-input" id="package-name" value="${esc(pkg.name)}">
+                        
+                        <label class="form-label">商品コード (SKU)</label>
+                        <input type="text" class="modal-input" id="package-sku" value="${esc(pkg.sku)}">
+                        
+                        <label class="form-label">説明 (オプション)</label>
+                        <input type="text" class="modal-input" id="package-description" value="${esc(pkg.description || '')}">
+                        
+                        <div style="margin: 20px 0; padding-top: 16px; border-top: 2px solid #e9ecef;">
+                            <div class="flex justify-between items-center" style="margin-bottom: 12px;">
+                                <strong style="font-size: 18px;">📦 内容構成</strong>
+                                <button class="btn btn-primary btn-sm" onclick="addPackageContentItem()">+ 製品を追加</button>
+                            </div>
+                            <div id="package-contents">
+                                <!-- 内容アイテムがここに表示されます -->
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f5ecd8; padding: 16px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 14px; color: #8d7540;">合計原価</div>
+                            <div id="package-total-cost" style="font-size: 28px; font-weight: 700; color: #7d5d3a;">¥0</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" id="save-package-btn">保存</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            
+            // 既存の内容を読み込む（製品のみ、新しい構造に対応）
+            window.packageContents = pkg.contents
+                .filter(item => item.type === 'product')
+                .map(item => ({
+                    productId: item.itemId,
+                    quantity: item.quantity
+                }));
+            renderPackageContents();
+            
+            // 保存ボタン
+            document.getElementById('save-package-btn').onclick = () => {
+                const name = document.getElementById('package-name').value.trim();
+                const sku = document.getElementById('package-sku').value.trim().toUpperCase();
+                const description = document.getElementById('package-description').value.trim();
+                
+                if (!name || !sku) {
+                    showToast('商品名とSKUを入力してください', true);
+                    return;
+                }
+                
+                if (window.packageContents.length === 0) {
+                    showToast('少なくとも1つの製品を追加してください', true);
+                    return;
+                }
+                
+                const invalid = window.packageContents.filter(item => !item.productId || item.quantity <= 0);
+                if (invalid.length > 0) {
+                    showToast('すべての製品を選択し、数量を入力してください', true);
+                    return;
+                }
+                
+                pkg.name = name;
+                pkg.sku = sku;
+                pkg.description = description;
+                pkg.contents = window.packageContents.map(item => ({
+                    type: 'product',
+                    itemId: item.productId,
+                    quantity: item.quantity
+                }));
+                
+                modal.remove();
+                renderAll();
+                showToast('商品を更新しました');
+            };
+        }
+
+        // 商品削除
+        function deletePackage(id) {
+            const pkg = packages.find(p => p.id === id);
+            if (!pkg) return;
+            
+            showConfirm('商品削除', `商品「${pkg.name}」を削除しますか?\n\nこの操作は取り消せません。`, () => {
+                packages = packages.filter(p => p.id !== id);
+                renderAll();
+                showToast('商品を削除しました');
+            });
+        }
+
+        // ========== ここまで商品管理機能 ==========
+
+        // ★追加: 商品詳細表示
+        function showPackageDetail(id) {
+            const pkg = packages.find(p => p.id === id);
+            if (!pkg) return;
+            
+            const totalCost = calculatePackageCost(id);
+            let marginRate = 0;
+            let grossProfit = 0;
+            
+            if (pkg.pricing && pkg.pricing.sellingPrice > 0 && totalCost > 0) {
+                grossProfit = pkg.pricing.sellingPrice - totalCost;
+                marginRate = (grossProfit / pkg.pricing.sellingPrice * 100).toFixed(1);
+            }
+            
+            let contentsHtml = '<div style="margin-top: 16px;">';
+            
+            // 製品
+            const productContents = (pkg.contents || []).filter(c => c.type === 'product');
+            if (productContents.length > 0) {
+                contentsHtml += '<h4 style="color: #667eea; margin-bottom: 12px;">【製品】</h4>';
+                productContents.forEach(item => {
+                    const product = products.find(p => p.id === item.productId || p.id === item.itemId);
+                    const unitCost = product ? calculateProductCost(product.id) : 0;
+                    const subtotal = unitCost * item.quantity;
+                    contentsHtml += `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f3f5;">
+                            <div>${product ? esc(product.name) : '不明'} × ${item.quantity}個</div>
+                            <div>${fmt(subtotal)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // 包材
+            const materialContents = (pkg.contents || []).filter(c => c.type === 'material');
+            if (materialContents.length > 0) {
+                contentsHtml += '<h4 style="color: #667eea; margin: 16px 0 12px;">【包材】</h4>';
+                materialContents.forEach(item => {
+                    const material = materials.find(m => m.id === item.itemId);
+                    // 包材の単価を計算（最新の仕入れロットから）
+                    const latestLot = ingredients.filter(i => i.material_id === item.itemId)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    const unitCost = latestLot ? (latestLot.price / latestLot.qty) : 0;
+                    const subtotal = unitCost * item.quantity;
+                    contentsHtml += `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f3f5;">
+                            <div>${material ? esc(material.name) : '不明'} × ${item.quantity}${material ? material.type === 'packaging' ? '枚' : 'g' : ''}</div>
+                            <div>${fmt(subtotal)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            contentsHtml += '</div>';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 700px;">
+                    <div class="modal-header">商品詳細: ${esc(pkg.name)}</div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 16px;">
+                            <strong>SKU:</strong> ${esc(pkg.sku)}<br>
+                            ${pkg.description ? `<strong>説明:</strong> ${esc(pkg.description)}` : ''}
+                        </div>
+                        
+                        ${contentsHtml}
+                        
+                        <div style="margin-top: 24px; padding: 20px; background: linear-gradient(135deg, #f5ecd8, #e5dcc8); border-radius: 8px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; text-align: center;">
+                                <div>
+                                    <div style="font-size: 14px; color: #8d7540;">原価</div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #7d5d3a;">${fmt(totalCost)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; color: #8d7540;">販売価格</div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #7d5d3a;">
+                                        ${pkg.pricing && pkg.pricing.sellingPrice > 0 ? fmt(pkg.pricing.sellingPrice) : '—'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; color: #8d7540;">粗利率</div>
+                                    <div style="font-size: 24px; font-weight: 700; color: ${marginRate >= 50 ? '#28a745' : marginRate >= 30 ? '#b8956a' : '#dc3545'};">
+                                        ${marginRate > 0 ? marginRate + '%' : '—'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-purple" onclick="this.closest('.modal-overlay').remove(); editPackage('${id}');">編集</button>
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">閉じる</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+        }
+
+        // ★追加: 商品プリセット管理（簡易版）
+        function showPackagePresetManager() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 900px;">
+                    <div class="modal-header">商品プリセット管理</div>
+                    <div class="modal-body">
+                        <div class="info-box" style="margin-bottom: 16px;">
+                            💡 よく使う商品の組み合わせをプリセットとして保存できます<br>
+                            💡 新しい商品を追加する際にプリセットから選択できます
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <button class="btn btn-green btn-sm" onclick="showCreatePackagePresetModal()">➕ 新しいプリセットを作成</button>
+                        </div>
+                        <div id="package-preset-manager-list"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">閉じる</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            renderPackagePresetManagerList();
+        }
+
+        function renderPackagePresetManagerList() {
+            const container = document.getElementById('package-preset-manager-list');
+            if (!container) return;
+            
+            if (packagePresets.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p class="text-sm text-gray">プリセットが登録されていません</p></div>';
+                return;
+            }
+            
+            container.innerHTML = packagePresets.map(preset => {
+                const productCount = preset.contents ? preset.contents.filter(c => c.type === 'product').length : 0;
+                const materialCount = preset.contents ? preset.contents.filter(c => c.type === 'material').length : 0;
+                
+                return `
+                    <div class="product-card">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <div style="font-weight: 600; font-size: 18px; margin-bottom: 4px;">${esc(preset.name)}</div>
+                                <div class="text-sm text-gray">
+                                    製品: ${productCount}種類 / 包材: ${materialCount}種類
+                                    ${preset.sku ? ` / SKU: ${esc(preset.sku)}` : ''}
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="showEditPackagePresetModal('${preset.id}')">編集</button>
+                                <button class="btn btn-red btn-sm" onclick="deletePackagePreset('${preset.id}')">削除</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 15px; color: #6c757d;">
+                            ${preset.contents && preset.contents.length > 0 ? preset.contents.map(item => {
+                                if (item.type === 'product') {
+                                    const product = products.find(p => p.id === item.itemId);
+                                    return product ? `• 製品: ${esc(product.name)} × ${item.quantity}個` : '';
+                                } else if (item.type === 'material') {
+                                    const material = materials.find(m => m.id === item.itemId);
+                                    return material ? `• 包材: ${esc(material.name)} × ${item.quantity}${material.type === 'packaging' ? '枚' : 'g'}` : '';
+                                }
+                                return '';
+                            }).filter(Boolean).join('<br>') : 'まだ内容が設定されていません'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showCreatePackagePresetModal() {
+            if (products.length === 0) {
+                showToast('先に製品を登録してください', true);
+                return;
+            }
+            
+            window.packagePresetContents = [];
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 800px;">
+                    <div class="modal-header">新しい商品プリセットを作成</div>
+                    <div class="modal-body">
+                        <div class="grid grid-2">
+                            <div>
+                                <label class="form-label">プリセット名</label>
+                                <input type="text" class="modal-input" id="package-preset-name" placeholder="例: 春のギフトセット">
+                            </div>
+                            <div>
+                                <label class="form-label">SKU（オプション）</label>
+                                <input type="text" class="modal-input" id="package-preset-sku" placeholder="例: BOX-SPRING-001">
+                            </div>
+                        </div>
+                        
+                        <label class="form-label">想定売値（オプション）</label>
+                        <input type="number" class="modal-input" id="package-preset-price" placeholder="例: 1200" min="0" step="1" oninput="updatePresetMarginPreview()">
+                        
+                        <div style="margin: 20px 0; padding-top: 16px; border-top: 2px solid #e9ecef;">
+                            <div class="flex justify-between items-center" style="margin-bottom: 12px;">
+                                <strong style="font-size: 18px;">📦 内容構成</strong>
+                                <div class="flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="addPackagePresetProduct()">+ 製品</button>
+                                    <button class="btn btn-purple btn-sm" onclick="addPackagePresetMaterial()">+ 包材</button>
+                                </div>
+                            </div>
+                            <div id="package-preset-contents">
+                                <div class="text-center text-gray" style="padding: 20px;">製品または包材を追加してください</div>
+                            </div>
+                        </div>
+                        
+                        <div id="preset-cost-preview" style="background: #f0f5f9; padding: 16px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 14px; color: #6c757d;">想定原価</div>
+                            <div style="font-size: 24px; font-weight: 600; color: #5a6c7d;">¥0</div>
+                            <div id="preset-margin-preview" style="margin-top: 8px; font-size: 14px; color: #6c757d;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" onclick="createPackagePreset()">作成</button>
+                    </div>
+                </div>
+            `;
+            const parentModal = document.querySelector('.modal-overlay');
+            if (parentModal) {
+                parentModal.appendChild(modal);
+            } else {
+                document.getElementById('modal-container').appendChild(modal);
+            }
+            document.getElementById('package-preset-name').focus();
+        }
+
+        function addPackagePresetProduct() {
+            if (products.length === 0) {
+                showToast('先に製品を登録してください', true);
+                return;
+            }
+            window.packagePresetContents.push({ type: 'product', itemId: '', quantity: 1 });
+            renderPackagePresetContents();
+        }
+
+        function addPackagePresetMaterial() {
+            const packagingMaterials = materials.filter(m => m.type === 'packaging' && m.status === 'active');
+            if (packagingMaterials.length === 0) {
+                showToast('先に包材（type=packaging）を登録してください', true);
+                return;
+            }
+            window.packagePresetContents.push({ type: 'material', itemId: '', quantity: 1 });
+            renderPackagePresetContents();
+        }
+
+        function renderPackagePresetContents() {
+            const container = document.getElementById('package-preset-contents');
+            if (!container) return;
+            
+            if (window.packagePresetContents.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray" style="padding: 20px;">製品または包材を追加してください</div>';
+                return;
+            }
+            
+            container.innerHTML = window.packagePresetContents.map((item, index) => {
+                if (item.type === 'product') {
+                    return `
+                        <div style="background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: center;">
+                                <div>
+                                    <label class="form-label" style="margin-bottom: 4px;">製品</label>
+                                    <select class="form-select" onchange="updatePackagePresetContent(${index}, 'itemId', this.value)">
+                                        <option value="">-- 製品を選択 --</option>
+                                        ${products.map(p => `
+                                            <option value="${p.id}" ${p.id === item.itemId ? 'selected' : ''}>
+                                                ${esc(p.name)} (${esc(p.sku)})
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="margin-bottom: 4px;">数量</label>
+                                    <input type="number" class="form-input" value="${item.quantity}" min="1" 
+                                           onchange="updatePackagePresetContent(${index}, 'quantity', parseInt(this.value) || 1)"
+                                           style="text-align: center;">
+                                </div>
+                                <div style="text-align: right; padding-top: 24px;">
+                                    <button class="btn btn-red btn-sm" onclick="removePackagePresetContent(${index})">削除</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'material') {
+                    const packagingMaterials = materials.filter(m => m.type === 'packaging' && m.status === 'active');
+                    return `
+                        <div style="background: #f0e5f8; border: 1px solid #d4c5e8; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: center;">
+                                <div>
+                                    <label class="form-label" style="margin-bottom: 4px;">包材</label>
+                                    <select class="form-select" onchange="updatePackagePresetContent(${index}, 'itemId', this.value)">
+                                        <option value="">-- 包材を選択 --</option>
+                                        ${packagingMaterials.map(m => `
+                                            <option value="${m.id}" ${m.id === item.itemId ? 'selected' : ''}>
+                                                ${esc(m.name)} (${esc(m.code)})
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="margin-bottom: 4px;">数量</label>
+                                    <input type="number" class="form-input" value="${item.quantity}" min="1" 
+                                           onchange="updatePackagePresetContent(${index}, 'quantity', parseInt(this.value) || 1)"
+                                           style="text-align: center;">
+                                </div>
+                                <div style="text-align: right; padding-top: 24px;">
+                                    <button class="btn btn-red btn-sm" onclick="removePackagePresetContent(${index})">削除</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('');
+        }
+
+        function updatePackagePresetContent(index, field, value) {
+            if (window.packagePresetContents[index]) {
+                window.packagePresetContents[index][field] = field === 'quantity' ? (parseInt(value) || 1) : value;
+                renderPackagePresetContents();
+                updatePresetMarginPreview();
+            }
+        }
+
+        function updatePresetMarginPreview() {
+            const costPreview = document.getElementById('preset-cost-preview');
+            const marginPreview = document.getElementById('preset-margin-preview');
+            const priceInput = document.getElementById('package-preset-price');
+            
+            if (!costPreview || !marginPreview || !priceInput) return;
+            
+            // 原価を計算
+            let totalCost = 0;
+            window.packagePresetContents.forEach(item => {
+                if (item.type === 'product' && item.itemId) {
+                    const unitCost = calculateProductCost(item.itemId);
+                    totalCost += unitCost * item.quantity;
+                } else if (item.type === 'material' && item.itemId) {
+                    const latestIngredient = ingredients
+                        .filter(i => i.material_id === item.itemId)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    if (latestIngredient) {
+                        const unitCost = latestIngredient.price / latestIngredient.qty;
+                        totalCost += unitCost * item.quantity;
+                    }
+                }
+            });
+            
+            costPreview.querySelector('div:nth-child(2)').textContent = fmt(totalCost);
+            
+            // 粗利率を計算
+            const sellingPrice = parseFloat(priceInput.value) || 0;
+            if (sellingPrice > 0 && totalCost > 0) {
+                const grossProfit = sellingPrice - totalCost;
+                const marginRate = (grossProfit / sellingPrice * 100).toFixed(1);
+                const marginColor = marginRate >= 50 ? '#52796f' : marginRate >= 30 ? '#b8956a' : '#a8625f';
+                marginPreview.innerHTML = `<span style="color: ${marginColor}; font-weight: 600;">想定粗利率: ${marginRate}% (粗利額: ${fmt(grossProfit)})</span>`;
+            } else {
+                marginPreview.innerHTML = '';
+            }
+        }
+
+        function removePackagePresetContent(index) {
+            window.packagePresetContents.splice(index, 1);
+            renderPackagePresetContents();
+            updatePresetMarginPreview();
+        }
+
+        function createPackagePreset() {
+            const name = document.getElementById('package-preset-name').value.trim();
+            const sku = document.getElementById('package-preset-sku').value.trim();
+            const price = parseFloat(document.getElementById('package-preset-price').value) || 0;
+            
+            if (!name) {
+                showToast('プリセット名を入力してください', true);
+                return;
+            }
+            
+            if (window.packagePresetContents.length === 0) {
+                showToast('少なくとも1つの製品または包材を追加してください', true);
+                return;
+            }
+            
+            const invalid = window.packagePresetContents.filter(item => !item.itemId || item.quantity <= 0);
+            if (invalid.length > 0) {
+                showToast('すべてのアイテムを選択し、数量を入力してください', true);
+                return;
+            }
+            
+            packagePresets.push({
+                id: genId(),
+                name: name,
+                sku: sku,
+                sellingPrice: price,
+                contents: window.packagePresetContents.map(item => ({...item}))
+            });
+            
+            document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+            showPackagePresetManager();
+            showToast('プリセットを作成しました');
+        }
+
+        function showEditPackagePresetModal(presetId) {
+            const preset = packagePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            window.packagePresetContents = preset.contents ? preset.contents.map(item => ({...item})) : [];
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 800px;">
+                    <div class="modal-header">プリセット編集</div>
+                    <div class="modal-body">
+                        <div class="grid grid-2">
+                            <div>
+                                <label class="form-label">プリセット名</label>
+                                <input type="text" class="modal-input" id="edit-package-preset-name" value="${esc(preset.name)}">
+                            </div>
+                            <div>
+                                <label class="form-label">SKU（オプション）</label>
+                                <input type="text" class="modal-input" id="edit-package-preset-sku" value="${esc(preset.sku || '')}">
+                            </div>
+                        </div>
+                        
+                        <label class="form-label">想定売値（オプション）</label>
+                        <input type="number" class="modal-input" id="edit-package-preset-price" value="${preset.sellingPrice || ''}" placeholder="例: 1200" min="0" step="1" oninput="updatePresetMarginPreview()">
+                        
+                        <div style="margin: 20px 0; padding-top: 16px; border-top: 2px solid #e9ecef;">
+                            <div class="flex justify-between items-center" style="margin-bottom: 12px;">
+                                <strong style="font-size: 18px;">📦 内容構成</strong>
+                                <div class="flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="addPackagePresetProduct()">+ 製品</button>
+                                    <button class="btn btn-purple btn-sm" onclick="addPackagePresetMaterial()">+ 包材</button>
+                                </div>
+                            </div>
+                            <div id="package-preset-contents"></div>
+                        </div>
+                        
+                        <div id="preset-cost-preview" style="background: #f0f5f9; padding: 16px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 14px; color: #6c757d;">想定原価</div>
+                            <div style="font-size: 24px; font-weight: 600; color: #5a6c7d;">¥0</div>
+                            <div id="preset-margin-preview" style="margin-top: 8px; font-size: 14px; color: #6c757d;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove(); showPackagePresetManager();">キャンセル</button>
+                        <button class="btn btn-green" onclick="savePackagePresetEdit('${presetId}')">保存</button>
+                    </div>
+                </div>
+            `;
+            
+            const parentModal = document.querySelector('.modal-overlay');
+            if (parentModal) {
+                parentModal.appendChild(modal);
+            } else {
+                document.getElementById('modal-container').appendChild(modal);
+            }
+            
+            document.getElementById('edit-package-preset-name').focus();
+            renderPackagePresetContents();
+            updatePresetMarginPreview();
+        }
+
+        function savePackagePresetEdit(presetId) {
+            const preset = packagePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            const newName = document.getElementById('edit-package-preset-name').value.trim();
+            const newSku = document.getElementById('edit-package-preset-sku').value.trim();
+            const newPrice = parseFloat(document.getElementById('edit-package-preset-price').value) || 0;
+            
+            if (!newName) {
+                showToast('プリセット名を入力してください', true);
+                return;
+            }
+            
+            if (window.packagePresetContents.length === 0) {
+                showToast('少なくとも1つの製品または包材を追加してください', true);
+                return;
+            }
+            
+            const invalid = window.packagePresetContents.filter(item => !item.itemId || item.quantity <= 0);
+            if (invalid.length > 0) {
+                showToast('すべてのアイテムを選択し、数量を入力してください', true);
+                return;
+            }
+            
+            preset.name = newName;
+            preset.sku = newSku;
+            preset.sellingPrice = newPrice;
+            preset.contents = window.packagePresetContents.map(item => ({...item}));
+            
+            document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+            showPackagePresetManager();
+            showToast('プリセットを更新しました');
+        }
+
+        function deletePackagePreset(presetId) {
+            const preset = packagePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            showConfirm('プリセット削除', `「${preset.name}」を削除しますか?`, () => {
+                packagePresets = packagePresets.filter(p => p.id !== presetId);
+                renderPackagePresetManagerList();
+                showToast('プリセットを削除しました');
+            });
+        }
+
+
+        async function saveDataToCloud() {
+            if (!API_BASE || API_BASE.includes('YOUR_API_ID')) {
+                showToast('API_BASE をCDKデプロイ後のURLに設定してください', true);
+                return;
+            }
+            setLoading(true);
+            
             const data = { 
                 products, 
                 materials, 
                 ingredients, 
                 usedUpIngredients,
                 recipePresets,
+                packages,
+                packagePresets,  // ★追加
                 exportDate: new Date().toISOString() 
             };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `cookie-data-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('データをエクスポートしました');
+            
+            try {
+                const signRes = await fetch(`${API_BASE}/sign-upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tool: TOOL_ID })
+                });
+                if (!signRes.ok) throw new Error('署名付きURL取得に失敗');
+                const { uploadUrl, key, latestPutUrl } = await signRes.json();
+                
+                await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (latestPutUrl) {
+                    await fetch(latestPutUrl, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+                        body: JSON.stringify({ key, updatedAt: new Date().toISOString() })
+                    });
+                }
+                
+                showToast('保存しました');
+            } catch (err) {
+                console.error('save error', err);
+                showToast('保存に失敗しました', true);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function loadLatestFromCloud() {
+            if (!API_BASE || API_BASE.includes('YOUR_API_ID')) return;
+            setLoading(true);
+            try {
+                const res = await fetch(`${API_BASE}/latest?tool=${encodeURIComponent(TOOL_ID)}`, {
+                    method: 'GET',
+                    headers: { 'Cache-Control': 'no-store' }
+                });
+                if (res.status === 404) {
+                    console.info('まだデータがありません');
+                    return;
+                }
+                if (!res.ok) throw new Error('latest呼び出しに失敗');
+                const meta = await res.json();
+                if (!meta.dataUrl) throw new Error('dataUrlなし');
+                const dataRes = await fetch(meta.dataUrl, { cache: 'no-store' });
+                if (!dataRes.ok) throw new Error('データ取得に失敗');
+                const payload = await dataRes.json();
+                applyLoadedData(payload, false);
+                showToast('最新データを読み込みました');
+            } catch (err) {
+                console.error('load error', err);
+                showToast('読み込みに失敗しました', true);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function applyLoadedData(d, shouldToast = true) {
+                        products = d.products || [];
+                        materials = d.materials || [];
+                        ingredients = d.ingredients || [];
+                        usedUpIngredients = d.usedUpIngredients || [];
+                        recipePresets = d.recipePresets || [];
+                        packages = d.packages || [];
+                        packagePresets = d.packagePresets || [];  // ★追加
+                        renderAll();
+            if (shouldToast) showToast('データを読み込みました');
         }
 
         function importData(e) {
@@ -1380,13 +2697,7 @@
                 try {
                     const d = JSON.parse(ev.target.result);
                     showConfirm('データインポート', '現在のデータを上書きしますか?', () => {
-                        products = d.products || [];
-                        materials = d.materials || [];
-                        ingredients = d.ingredients || [];
-                        usedUpIngredients = d.usedUpIngredients || [];
-                        recipePresets = d.recipePresets || [];
-                        renderAll();
-                        showToast('データをインポートしました');
+                        applyLoadedData(d, true);
                     });
                 } catch (err) {
                     showToast('ファイルの読み込みに失敗しました', true);
@@ -1402,20 +2713,33 @@
             renderDashboard(); 
             renderMaterials(); 
             renderIngredients();
+            renderProducts();  // ★追加
+            renderPackages();
             if (showUsedUp) renderUsedUp();
         }
 
-        function renderDashboard() {
-            document.getElementById('total-products').textContent = products.length;
-            document.getElementById('total-batches').textContent = 0;
-            document.getElementById('total-materials').textContent = materials.filter(m => m.status === 'active').length;
-            document.getElementById('active-ingredients').textContent = ingredients.length;
+        // ローディングオーバーレイ
+        function setLoading(isLoading) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (!overlay) return;
+            if (isLoading) {
+                overlay.classList.add('show');
+            } else {
+                overlay.classList.remove('show');
+            }
+        }
+
+        // ★追加: 製品一覧表示関数
+        function renderProducts() {
+            const tbody = document.getElementById('products-table-body');
+            if (!tbody) return;
             
-            const tb = document.getElementById('dashboard-table-body');
-            if (!tb) return;
-            tb.innerHTML = '';
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-gray">製品が登録されていません</td></tr>';
+                return;
+            }
             
-            products.forEach(p => {
+            tbody.innerHTML = products.map(p => {
                 const hasRecipe = p.recipe && p.recipe.length > 0;
                 const cost = hasRecipe ? calculateProductCost(p.id) : 0;
                 const recipeStatus = hasRecipe ? 
@@ -1425,36 +2749,81 @@
                     `<span class="font-bold text-green">${fmtDec(cost)}</span>` : 
                     `<span class="text-gray">—</span>`;
                 
-                // 収益情報の表示
-                let profitInfo = '<span class="text-gray text-sm">未設定</span>';
-                if (p.pricing) {
-                    if (p.pricing.sellingPrice > 0) {
-                        const grossProfit = p.pricing.sellingPrice - cost;
-                        const marginRate = cost > 0 ? (grossProfit / p.pricing.sellingPrice * 100).toFixed(1) : 0;
-                        profitInfo = `<div class="text-sm">
-                            <div>売価: <strong>${fmt(p.pricing.sellingPrice)}</strong></div>
-                            <div class="text-green">粗利率: <strong>${marginRate}%</strong> (${fmt(grossProfit)})</div>
-                        </div>`;
-                    } else if (p.pricing.targetMargin > 0) {
-                        const minPrice = cost > 0 ? cost / (1 - p.pricing.targetMargin / 100) : 0;
-                        profitInfo = `<div class="text-sm">
-                            <div>目標: <strong>${p.pricing.targetMargin}%</strong></div>
-                            <div class="text-orange">最低売価: <strong>${fmt(minPrice)}</strong></div>
-                        </div>`;
+                return `
+                    <tr>
+                        <td>
+                            <span class="clickable-product" onclick="showRecipeEditor('${p.id}')">${esc(p.name)}</span>
+                        </td>
+                        <td class="text-sm text-gray">${esc(p.sku)}</td>
+                        <td>${recipeStatus}</td>
+                        <td class="text-right">${costDisplay}</td>
+                        <td class="text-center">
+                            <button class="btn btn-purple btn-sm" onclick="showRecipeEditor('${p.id}')">レシピ編集</button>
+                            <button class="btn btn-red btn-sm" onclick="deleteProduct('${p.id}')">削除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDashboard() {
+            // 安全なテキスト更新
+            const totalProductsEl = document.getElementById('total-products');
+            const totalPackagesEl = document.getElementById('total-packages');
+            const totalMaterialsEl = document.getElementById('total-materials');
+            const totalIngredientsEl = document.getElementById('total-ingredients');
+            
+            if (totalProductsEl) totalProductsEl.textContent = products.length;
+            if (totalPackagesEl) totalPackagesEl.textContent = packages.length;
+            if (totalMaterialsEl) totalMaterialsEl.textContent = materials.filter(m => m.status === 'active').length;
+            if (totalIngredientsEl) totalIngredientsEl.textContent = ingredients.length;
+            
+            const tb = document.getElementById('dashboard-table-body');
+            if (!tb) return;
+            tb.innerHTML = '';
+            
+            // ★変更: 商品を表示
+            if (packages.length === 0) {
+                tb.innerHTML = '<tr><td colspan="7" class="text-center text-gray">商品が登録されていません</td></tr>';
+                return;
+            }
+            
+            packages.forEach(pkg => {
+                const cost = calculatePackageCost(pkg.id);
+                const totalProducts = pkg.contents ? pkg.contents.filter(c => c.type === 'product').reduce((sum, item) => sum + item.quantity, 0) : 0;
+                const contentSummary = totalProducts > 0 ? `${totalProducts}個入り` : '未設定';
+                
+                const costDisplay = cost > 0 ? 
+                    `<span class="font-bold text-green">${fmt(cost)}</span>` : 
+                    `<span class="text-gray">—</span>`;
+                
+                // 販売価格と粗利率
+                let priceDisplay = '<span class="text-gray">—</span>';
+                let marginDisplay = '<span class="text-gray">—</span>';
+                
+                if (pkg.pricing && pkg.pricing.sellingPrice > 0) {
+                    priceDisplay = `<span class="font-bold">${fmt(pkg.pricing.sellingPrice)}</span>`;
+                    if (cost > 0) {
+                        const grossProfit = pkg.pricing.sellingPrice - cost;
+                        const marginRate = (grossProfit / pkg.pricing.sellingPrice * 100).toFixed(1);
+                        const marginColor = marginRate >= 50 ? 'text-green' : marginRate >= 30 ? 'text-orange' : 'text-red';
+                        marginDisplay = `<span class="font-bold ${marginColor}">${marginRate}%</span>`;
                     }
                 }
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
-                        <span class="clickable-product" onclick="showRecipeEditor('${p.id}')">${esc(p.name)}</span>
+                        <span class="clickable-product" onclick="showPackageDetail('${pkg.id}')">${esc(pkg.name)}</span>
                     </td>
-                    <td class="text-sm text-gray">${esc(p.sku)}</td>
-                    <td>${recipeStatus}</td>
+                    <td class="text-sm text-gray">${esc(pkg.sku)}</td>
+                    <td class="text-sm">${contentSummary}</td>
                     <td class="text-right">${costDisplay}</td>
-                    <td>${profitInfo}</td>
+                    <td class="text-right">${priceDisplay}</td>
+                    <td class="text-right">${marginDisplay}</td>
                     <td class="text-center">
-                        <button class="btn btn-red btn-sm" onclick="deleteProduct('${p.id}')">削除</button>
+                        <button class="btn btn-purple btn-sm" onclick="editPackage('${pkg.id}')">編集</button>
+                        <button class="btn btn-red btn-sm" onclick="deletePackage('${pkg.id}')">削除</button>
                     </td>
                 `;
                 tb.appendChild(tr);
@@ -1566,6 +2935,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             initData();
             renderAll();
+            // API_BASEが設定されている場合のみS3から最新データを取得
+            loadLatestFromCloud();
             const imp = document.getElementById('import-file');
             if (imp) imp.addEventListener('change', importData);
         });
