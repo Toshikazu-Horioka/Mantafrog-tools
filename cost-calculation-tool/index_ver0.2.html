@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クッキー原価管理システム</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #2c3e50; line-height: 1.7; font-size: 18px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #5a6c7d; }
+        .header h1 { font-size: 36px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
+        .header p { color: #6c757d; font-size: 20px; }
+        .section { background: white; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; border-left: 3px solid #8b9ba8; }
+        .section-header { width: 100%; padding: 20px 24px; background: #fafbfc; border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 22px; font-weight: 600; color: #2c3e50; transition: all 0.2s; border-bottom: 1px solid #e9ecef; }
+        .section-header:hover { background: #f1f3f5; }
+        .section-content { padding: 24px; }
+        .section-content.hidden { display: none; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 6px; font-size: 17px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #5a6c7d; color: white; } .btn-primary:hover { background: #4a5a6a; }
+        .btn-green { background: #52796f; color: white; } .btn-green:hover { background: #42695f; }
+        .btn-red { background: #a8625f; color: white; } .btn-red:hover { background: #98524f; }
+        .btn-purple { background: #7d6b8f; color: white; } .btn-purple:hover { background: #6d5b7f; }
+        .btn-orange { background: #b8956a; color: white; } .btn-orange:hover { background: #a8855a; }
+        .btn-yellow { background: #c4a563; color: white; } .btn-yellow:hover { background: #b49553; }
+        .btn-gray { background: #8b9ba8; color: white; } .btn-gray:hover { background: #7b8b98; }
+        .btn-cyan { background: #6b8e9f; color: white; } .btn-cyan:hover { background: #5b7e8f; }
+        .btn-sm { padding: 8px 16px; font-size: 16px; }
+        .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1px solid #ced4da; border-radius: 5px; font-size: 17px; color: #495057; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #5a6c7d; }
+        .form-label { display: block; font-size: 17px; font-weight: 500; color: #495057; margin-bottom: 6px; }
+        .table-container { overflow-x: auto; border-radius: 6px; border: 1px solid #dee2e6; margin-bottom: 20px; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #f1f3f5; font-size: 17px; }
+        .table th { background: #fafbfc; font-weight: 600; font-size: 17px; color: #495057; }
+        .table tr:hover { background: #f8f9fa; }
+        .table tr:last-child td { border-bottom: none; }
+        .table-input { width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 16px; }
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 8px; padding: 24px; text-align: center; border: 1px solid #e9ecef; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 40px; font-weight: 600; margin-bottom: 8px; color: #5a6c7d; }
+        .stat-label { font-size: 16px; color: #6c757d; font-weight: 500; }
+        .product-card { background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 15px; font-weight: 500; }
+        .badge-green { background: #d4e4df; color: #2d5a4c; }
+        .badge-blue { background: #d6e4ed; color: #3a5569; }
+        .badge-gray { background: #e9ecef; color: #6c757d; }
+        .badge-orange { background: #f0e5d8; color: #7d5d3a; }
+        .badge-red { background: #f0dbd9; color: #7d4542; }
+        .badge-yellow { background: #f5ecd8; color: #8d7540; }
+        .badge-cyan { background: #dce8ed; color: #4a6b7a; }
+        .alert-box { background: #fff5f5; border: 1px solid #e8bcba; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #a8625f; }
+        .alert-box h3 { color: #7d4542; font-size: 22px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .alert-item { background: white; border-left: 3px solid #a8625f; padding: 14px; margin-bottom: 8px; border-radius: 4px; font-size: 17px; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 600; }
+        .font-mono { font-family: 'Courier New', monospace; }
+        .text-sm { font-size: 17px; }
+        .text-lg { font-size: 22px; }
+        .hidden { display: none; }
+        .empty-state { text-align: center; padding: 40px; color: #6c757d; font-size: 18px; }
+        .text-blue { color: #5a6c7d; }
+        .text-green { color: #52796f; }
+        .text-red { color: #a8625f; }
+        .text-purple { color: #7d6b8f; }
+        .text-orange { color: #b8956a; }
+        .text-gray { color: #6c757d; }
+        .unit-price { background: #f0dbd9; color: #7d4542; padding: 6px 10px; border-radius: 4px; font-weight: 500; font-family: 'Courier New', monospace; font-size: 15px; }
+        .expiry-warning { border-color: #a8625f !important; background: #fff5f5; }
+        .expiry-caution { border-color: #c4a563 !important; background: #fffbf0; }
+        .row-suspended { opacity: 0.5; background: #f8f9fa; }
+        .info-box { background: #f0f5f9; border: 1px solid #c8d6e3; border-radius: 6px; padding: 16px; margin-bottom: 16px; font-size: 17px; color: #3a5569; line-height: 1.7; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: white; border-radius: 8px; padding: 24px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .modal-header { font-size: 24px; font-weight: 600; margin-bottom: 16px; color: #2c3e50; border-bottom: 2px solid #e9ecef; padding-bottom: 12px; }
+        .modal-body { margin-bottom: 20px; color: #495057; line-height: 1.7; font-size: 17px; }
+        .modal-footer { display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e9ecef; }
+        .modal-input { width: 100%; padding: 12px 14px; border: 1px solid #ced4da; border-radius: 5px; font-size: 17px; margin-bottom: 12px; }
+        .modal-input:focus { outline: none; border-color: #5a6c7d; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #52796f; color: white; padding: 16px 24px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1001; animation: slideIn 0.3s ease; font-size: 18px; }
+        .toast-error { background: #a8625f; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .clickable-product { cursor: pointer; color: #5a6c7d; text-decoration: none; font-weight: 500; font-size: 18px; }
+        .clickable-product:hover { color: #4a5a6a; text-decoration: underline; }
+        .recipe-item { background: #fafbfc; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin-bottom: 10px; font-size: 17px; }
+        .preset-card { background: white; border: 2px solid #e9ecef; border-radius: 8px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; font-size: 17px; }
+        .preset-card:hover { border-color: #5a6c7d; background: #f8f9fa; }
+        .preset-card.selected { border-color: #5a6c7d; background: #f0f5f9; }
+        .cost-display { background: #f5ecd8; border: 1px solid #d4c5a8; border-radius: 8px; padding: 20px; margin: 16px 0; text-align: center; }
+        .cost-display .cost-value { font-size: 40px; font-weight: 600; color: #7d5d3a; }
+        .cost-display .cost-label { font-size: 17px; color: #8d7540; margin-top: 4px; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍪 クッキー原価管理システム</h1>
+            <p>製造ロットごとの原価管理で正確な価格交渉を実現</p>
+        </div>
+
+        <div id="expiry-alerts"></div>
+
+        <div class="section">
+            <button class="section-header" onclick="toggleSection('dashboard')">
+                <span>📊 原価ダッシュボード</span>
+                <span id="dashboard-chevron">▼</span>
+            </button>
+            <div class="section-content" id="dashboard-content">
+                <div class="info-box">
+                    💡 <strong>製品名をクリック</strong>してレシピを編集できます<br>
+                    💡 <strong>単位原価</strong>: 最新の仕入れ価格から自動計算された1個あたりの製造原価
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-value" id="total-products">0</div><div class="stat-label">登録製品数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="total-batches">0</div><div class="stat-label">製造ロット数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="total-materials">0</div><div class="stat-label">材料種類数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="active-ingredients">0</div><div class="stat-label">アクティブ仕入</div></div>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead><tr><th>製品名</th><th>SKU</th><th>レシピ</th><th class="text-right">単位原価</th><th>収益情報</th><th class="text-center">操作</th></tr></thead>
+                        <tbody id="dashboard-table-body"></tbody>
+                    </table>
+                </div>
+                <div class="flex justify-between">
+                    <button class="btn btn-cyan" onclick="showRecipePresetManager()">📋 レシピプリセット管理</button>
+                    <button class="btn btn-green" onclick="showAddProductModal()">➕ 新製品追加</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <button class="section-header" onclick="toggleSection('materials')">
+                <span>📦 材料・仕入れ管理</span>
+                <span id="materials-chevron">▼</span>
+            </button>
+            <div class="section-content" id="materials-content">
+                <div class="flex justify-between items-center mb-4">
+                    <div><h3 class="font-bold text-lg">原材料・包材在庫</h3><p class="text-sm text-gray">ロット別の仕入れ価格を管理</p></div>
+                    <div class="flex gap-2">
+                        <button class="btn btn-purple" onclick="toggleMaterialMaster()">📝 材料マスタ編集</button>
+                        <button class="btn btn-primary" onclick="addIngredient()">➕ 仕入れ追加</button>
+                    </div>
+                </div>
+                <div id="material-master-section" class="hidden mb-4">
+                    <div class="product-card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-purple">材料マスタ編集</h4>
+                            <div class="flex gap-2">
+                                <button class="btn btn-gray btn-sm" onclick="toggleSuspendedMaterials()">
+                                    <span id="suspended-materials-toggle">保留材料を表示</span>
+                                </button>
+                                <button class="btn btn-purple btn-sm" onclick="addMaterial()">+ 材料追加</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead><tr><th>材料名</th><th>材料コード</th><th>カテゴリー</th><th>具体的な製品名</th><th>種類</th><th>状態</th><th>操作</th></tr></thead>
+                                <tbody id="materials-master-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead><tr><th>材料名</th><th>ロットNo</th><th>仕入日</th><th>仕入数量</th><th>単位</th><th>仕入価格</th><th class="text-right">単価</th><th>仕入先</th><th>賞味期限</th><th>操作</th></tr></thead>
+                        <tbody id="ingredients-table"></tbody>
+                    </table>
+                </div>
+                <div id="no-ingredients" class="empty-state hidden">
+                    <div style="font-size: 48px; margin-bottom: 16px; color: #d1d5db;">📋</div>
+                    <p>仕入れデータが登録されていません</p>
+                    <p class="text-sm">「仕入れ追加」ボタンから材料を追加してください</p>
+                </div>
+
+                <div class="mb-4">
+                    <button class="btn btn-yellow btn-sm" onclick="toggleUsedUpSection()">
+                        <span id="used-up-toggle-text">📜 使い切り履歴を表示</span>
+                    </button>
+                </div>
+                <div id="used-up-section" class="hidden">
+                    <div class="product-card">
+                        <h4 class="font-bold mb-4">使い切り履歴</h4>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead><tr><th>材料名</th><th>ロットNo</th><th>仕入日</th><th>仕入数量</th><th>単位</th><th>仕入価格</th><th>仕入先</th><th>使い切り日</th><th>操作</th></tr></thead>
+                                <tbody id="used-up-table"></tbody>
+                            </table>
+                        </div>
+                        <div id="no-used-up" class="empty-state hidden">
+                            <p class="text-sm text-gray">使い切りデータがありません</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <h4 class="font-bold mb-4">💾 データ管理</h4>
+                    <div class="grid grid-2">
+                        <div><button class="btn btn-green" onclick="exportData()">📤 データエクスポート</button><p class="text-sm text-gray" style="margin-top: 8px;">全データをJSONファイルでエクスポート</p></div>
+                        <div><input type="file" id="import-file" accept=".json" style="display: none;"><button class="btn btn-primary" onclick="document.getElementById('import-file').click()">📥 データインポート</button><p class="text-sm text-gray" style="margin-top: 8px;">JSONファイルからデータをインポート</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container"></div>
+    <div id="toast-container"></div>
+
+    <script>
+        let products = [];
+        let materials = [];
+        let ingredients = [];
+        let usedUpIngredients = [];
+        let recipePresets = [];
+        let sections = { dashboard: true, materials: true };
+        let showUsedUp = false;
+        let showSuspendedMaterials = false;
+
+        const fmt = (v) => `¥${Math.ceil(v || 0).toLocaleString()}`;
+        const fmtDec = (v) => `¥${(v || 0).toFixed(2)}`;
+        const genId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const esc = (t) => { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
+        
+        const genLot = (code) => {
+            if (!code) return '';
+            const allIngredients = [...ingredients, ...usedUpIngredients];
+            const ex = allIngredients.filter(i => i.material_code === code).map(i => i.lot_no).filter(l => l && l.startsWith(code)).map(l => parseInt(l.replace(code, '')) || 0).sort((a, b) => b - a);
+            return `${code}${String((ex[0] || 0) + 1).padStart(3, '0')}`;
+        };
+
+        function calculateProductCost(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || !product.recipe || product.recipe.length === 0) return 0;
+            
+            let totalCost = 0;
+            product.recipe.forEach(recipeItem => {
+                const material = materials.find(m => m.id === recipeItem.material_id);
+                if (!material) return;
+                
+                // 選択されたロットがある場合はそれを使用、なければ最新のロット
+                let selectedIngredient = null;
+                if (recipeItem.ingredient_id) {
+                    selectedIngredient = ingredients.find(i => i.id === recipeItem.ingredient_id);
+                }
+                
+                if (!selectedIngredient) {
+                    const activeIngredients = ingredients.filter(i => i.material_id === recipeItem.material_id && i.qty > 0);
+                    if (activeIngredients.length === 0) return;
+                    selectedIngredient = activeIngredients.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                }
+                
+                if (selectedIngredient && selectedIngredient.qty > 0) {
+                    const unitPrice = selectedIngredient.price / selectedIngredient.qty;
+                    totalCost += unitPrice * recipeItem.quantity;
+                }
+            });
+            
+            return totalCost;
+        }
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${isError ? 'toast-error' : ''}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function showConfirm(title, message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">${esc(title)}</div>
+                    <div class="modal-body" style="white-space: pre-line;">${esc(message)}</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-red" id="confirm-btn">実行</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            document.getElementById('confirm-btn').onclick = () => {
+                modal.remove();
+                onConfirm();
+            };
+        }
+
+        function initData() {
+            products = [
+                { 
+                    id: '1', 
+                    sku: 'CK-CHOCO-001', 
+                    name: 'チョコチップクッキー', 
+                    recipe: [
+                        { material_id: '1', quantity: 200, ingredient_id: '1' },
+                        { material_id: '2', quantity: 100, ingredient_id: '3' },
+                        { material_id: '3', quantity: 80, ingredient_id: '4' },
+                        { material_id: '4', quantity: 50, ingredient_id: '5' },
+                        { material_id: '6', quantity: 1, ingredient_id: '7' },
+                        { material_id: '7', quantity: 1, ingredient_id: '8' }
+                    ],
+                    pricing: { sellingPrice: 350, targetMargin: 0 }
+                },
+                { 
+                    id: '2', 
+                    sku: 'CK-BUTTR-001', 
+                    name: 'バタークッキー', 
+                    recipe: [
+                        { material_id: '1', quantity: 200, ingredient_id: '2' },
+                        { material_id: '2', quantity: 120, ingredient_id: '3' },
+                        { material_id: '3', quantity: 80, ingredient_id: '4' },
+                        { material_id: '6', quantity: 1, ingredient_id: '7' },
+                        { material_id: '7', quantity: 1, ingredient_id: '8' }
+                    ],
+                    pricing: { sellingPrice: 0, targetMargin: 45 }
+                },
+                { 
+                    id: '3', 
+                    sku: 'CK-ALMON-001', 
+                    name: 'アーモンドクッキー', 
+                    recipe: [
+                        { material_id: '1', quantity: 200, ingredient_id: '1' },
+                        { material_id: '2', quantity: 100, ingredient_id: '3' },
+                        { material_id: '3', quantity: 80, ingredient_id: '4' },
+                        { material_id: '5', quantity: 30, ingredient_id: '6' },
+                        { material_id: '6', quantity: 1, ingredient_id: '7' },
+                        { material_id: '7', quantity: 1, ingredient_id: '8' }
+                    ],
+                    pricing: { sellingPrice: 400, targetMargin: 0 }
+                }
+            ];
+            materials = [
+                { id: '1', name: '小麦粉(強力粉)', code: 'MT-FLR', type: 'material', category: '粉類', productName: '日清カメリヤ強力粉', status: 'active' },
+                { id: '2', name: 'バター(無塩)', code: 'MT-BUT', type: 'material', category: '乳製品', productName: 'よつ葉バター無塩450g', status: 'active' },
+                { id: '3', name: 'グラニュー糖', code: 'MT-SGR', type: 'material', category: '甘味料', productName: 'スプーン印グラニュー糖1kg', status: 'active' },
+                { id: '4', name: 'チョコチップ', code: 'MT-CHO', type: 'material', category: 'トッピング', productName: 'バンホーテンチョコチップ200g', status: 'active' },
+                { id: '5', name: 'アーモンドスライス', code: 'MT-ALM', type: 'material', category: 'ナッツ類', productName: 'カリフォルニア産アーモンドスライス', status: 'active' },
+                { id: '6', name: '卵', code: 'MT-EGG', type: 'material', category: '卵・乳製品', productName: '赤玉Lサイズ', status: 'active' },
+                { id: '7', name: 'プラスチック袋(小)', code: 'PK-BAG', type: 'packaging', category: '個包装', productName: 'OPP袋 透明 100×150mm', status: 'active' },
+                { id: '8', name: '紙箱(12枚入り)', code: 'PK-BOX', type: 'packaging', category: '外装', productName: 'ギフトボックス 中サイズ', status: 'active' }
+            ];
+            ingredients = [
+                { id: '1', material_id: '1', material_code: 'MT-FLR', lot_no: 'MT-FLR001', date: '2025-10-01', qty: 25000, price: 4500, unit: 'g', supplier: 'A製粉株式会社', expiry: '2026-09-30' },
+                { id: '2', material_id: '1', material_code: 'MT-FLR', lot_no: 'MT-FLR002', date: '2025-10-10', qty: 25000, price: 4600, unit: 'g', supplier: 'A製粉株式会社', expiry: '2026-10-09' },
+                { id: '3', material_id: '2', material_code: 'MT-BUT', lot_no: 'MT-BUT001', date: '2025-10-05', qty: 5000, price: 9800, unit: 'g', supplier: 'よつ葉乳業特約店', expiry: '2025-11-20' },
+                { id: '4', material_id: '3', material_code: 'MT-SGR', lot_no: 'MT-SGR001', date: '2025-09-15', qty: 10000, price: 1800, unit: 'g', supplier: 'B製糖商事', expiry: '2027-09-14' },
+                { id: '5', material_id: '4', material_code: 'MT-CHO', lot_no: 'MT-CHO001', date: '2025-10-03', qty: 2000, price: 3200, unit: 'g', supplier: 'C輸入食材', expiry: '2026-04-02' },
+                { id: '6', material_id: '5', material_code: 'MT-ALM', lot_no: 'MT-ALM001', date: '2025-10-08', qty: 1000, price: 2400, unit: 'g', supplier: 'D乾物問屋', expiry: '2026-10-07' },
+                { id: '7', material_id: '6', material_code: 'MT-EGG', lot_no: 'MT-EGG001', date: '2025-10-14', qty: 60, price: 480, unit: '個', supplier: 'E養鶏場直送', expiry: '2025-10-28' },
+                { id: '8', material_id: '7', material_code: 'PK-BAG', lot_no: 'PK-BAG001', date: '2025-09-20', qty: 5000, price: 12500, unit: '枚', supplier: 'F包装資材', expiry: '' },
+                { id: '9', material_id: '8', material_code: 'PK-BOX', lot_no: 'PK-BOX001', date: '2025-09-25', qty: 500, price: 30000, unit: '枚', supplier: 'G紙器製造', expiry: '' }
+            ];
+            usedUpIngredients = [];
+            recipePresets = [
+                {
+                    id: 'preset-1',
+                    name: 'チョコチップクッキー（基本）',
+                    recipe: [
+                        { material_id: '1', quantity: 200 },
+                        { material_id: '2', quantity: 100 },
+                        { material_id: '3', quantity: 80 },
+                        { material_id: '4', quantity: 50 },
+                        { material_id: '6', quantity: 1 },
+                        { material_id: '7', quantity: 1 }
+                    ]
+                },
+                {
+                    id: 'preset-2',
+                    name: 'バタークッキー（基本）',
+                    recipe: [
+                        { material_id: '1', quantity: 200 },
+                        { material_id: '2', quantity: 120 },
+                        { material_id: '3', quantity: 80 },
+                        { material_id: '6', quantity: 1 },
+                        { material_id: '7', quantity: 1 }
+                    ]
+                },
+                {
+                    id: 'preset-3',
+                    name: 'アーモンドクッキー（基本）',
+                    recipe: [
+                        { material_id: '1', quantity: 200 },
+                        { material_id: '2', quantity: 100 },
+                        { material_id: '3', quantity: 80 },
+                        { material_id: '5', quantity: 30 },
+                        { material_id: '6', quantity: 1 },
+                        { material_id: '7', quantity: 1 }
+                    ]
+                }
+            ];
+        }
+
+        function showRecipeEditor(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (!product.recipe) product.recipe = [];
+            if (!product.pricing) product.pricing = { sellingPrice: 0, targetMargin: 0 };
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 1000px;">
+                    <div class="modal-header">📝 レシピ編集: ${esc(product.name)}</div>
+                    <div class="modal-body">
+                        <div class="info-box" style="margin-bottom: 16px;">
+                            💡 <strong>使用ロット</strong>を選択して、1個あたりの<strong>使用量</strong>を入力してください<br>
+                            💡 原価は選択したロットの仕入れ価格から自動計算されます
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <button class="btn btn-cyan btn-sm" onclick="showPresetSelector('${productId}')">📋 プリセットから材料を選択</button>
+                        </div>
+                        
+                        <!-- 材料詳細トグル -->
+                        <div class="product-card" style="margin-bottom: 20px;">
+                            <button class="section-header" style="width: 100%; background: transparent; border: none; padding: 12px 0;" onclick="toggleRecipeMaterials('${productId}')">
+                                <span style="font-size: 16px; font-weight: 600;">📦 材料詳細</span>
+                                <span id="recipe-materials-chevron-${productId}">▼</span>
+                            </button>
+                            <div id="recipe-materials-content-${productId}" style="margin-top: 12px;">
+                                <div id="recipe-list-${productId}"></div>
+                                <button class="btn btn-primary btn-sm" onclick="addRecipeItem('${productId}')" style="margin-top: 12px;">+ 材料を追加</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 原価表示 -->
+                        <div class="cost-display" id="cost-display-${productId}">
+                            <div class="cost-value">¥0.00</div>
+                            <div class="cost-label">1個あたりの原価（選択ロット基準）</div>
+                        </div>
+                        
+                        <!-- 収益計算トグル -->
+                        <div class="product-card" style="margin-top: 20px; border: 2px solid #52796f;">
+                            <button class="section-header" style="width: 100%; background: transparent; border: none; padding: 12px 0;" onclick="togglePricingSection('${productId}')">
+                                <span style="font-size: 16px; font-weight: 600; color: #52796f;">💰 収益計算</span>
+                                <span id="pricing-section-chevron-${productId}">▼</span>
+                            </button>
+                            <div id="pricing-section-content-${productId}" style="margin-top: 12px;">
+                                <div class="grid grid-2" style="gap: 20px;">
+                                    <div>
+                                        <label class="form-label">販売価格を設定</label>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 600;">¥</span>
+                                            <input type="number" class="form-input" id="selling-price-${productId}" 
+                                                value="${product.pricing.sellingPrice || ''}" 
+                                                min="0" step="1" placeholder="例: 300"
+                                                onchange="updateSellingPrice('${productId}', this.value)">
+                                        </div>
+                                        <div id="margin-display-${productId}" style="margin-top: 12px; padding: 12px; background: #d4e4df; border-radius: 6px; display: none;">
+                                            <div style="font-size: 13px; color: #2d5a4c; margin-bottom: 4px;">粗利率</div>
+                                            <div style="font-size: 24px; font-weight: 600; color: #2d5a4c;">0%</div>
+                                            <div style="font-size: 12px; color: #52796f; margin-top: 4px;">粗利額: ¥0</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">目標粗利率を設定</label>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="number" class="form-input" id="target-margin-${productId}" 
+                                                value="${product.pricing.targetMargin || ''}" 
+                                                min="0" max="100" step="0.1" placeholder="例: 40"
+                                                onchange="updateTargetMargin('${productId}', this.value)">
+                                            <span style="font-weight: 600;">%</span>
+                                        </div>
+                                        <div id="min-price-display-${productId}" style="margin-top: 12px; padding: 12px; background: #f5ecd8; border-radius: 6px; display: none;">
+                                            <div style="font-size: 13px; color: #7d5d3a; margin-bottom: 4px;">最低販売価格</div>
+                                            <div style="font-size: 24px; font-weight: 600; color: #7d5d3a;">¥0</div>
+                                            <div style="font-size: 12px; color: #8d7540; margin-top: 4px;">目標粗利額: ¥0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="info-box" style="margin-top: 16px;">
+                                    💡 <strong>粗利率</strong> = (販売価格 - 原価) ÷ 販売価格 × 100<br>
+                                    💡 <strong>最低販売価格</strong> = 原価 ÷ (1 - 目標粗利率)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" onclick="saveRecipe('${productId}')">保存</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            renderRecipeList(productId);
+            updateCostDisplay(productId);
+            updatePricingDisplays(productId);
+        }
+
+        function toggleRecipeMaterials(productId) {
+            const content = document.getElementById(`recipe-materials-content-${productId}`);
+            const chevron = document.getElementById(`recipe-materials-chevron-${productId}`);
+            if (content && chevron) {
+                const isHidden = content.style.display === 'none';
+                content.style.display = isHidden ? 'block' : 'none';
+                chevron.textContent = isHidden ? '▼' : '▶';
+            }
+        }
+
+        function togglePricingSection(productId) {
+            const content = document.getElementById(`pricing-section-content-${productId}`);
+            const chevron = document.getElementById(`pricing-section-chevron-${productId}`);
+            if (content && chevron) {
+                const isHidden = content.style.display === 'none';
+                content.style.display = isHidden ? 'block' : 'none';
+                chevron.textContent = isHidden ? '▼' : '▶';
+            }
+        }
+
+        function updateSellingPrice(productId, value) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (!product.pricing) product.pricing = { sellingPrice: 0, targetMargin: 0 };
+            product.pricing.sellingPrice = parseFloat(value) || 0;
+            
+            updatePricingDisplays(productId);
+        }
+
+        function updateTargetMargin(productId, value) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (!product.pricing) product.pricing = { sellingPrice: 0, targetMargin: 0 };
+            product.pricing.targetMargin = parseFloat(value) || 0;
+            
+            updatePricingDisplays(productId);
+        }
+
+        function updatePricingDisplays(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || !product.pricing) return;
+            
+            const cost = calculateProductCost(productId);
+            const sellingPrice = product.pricing.sellingPrice || 0;
+            const targetMargin = product.pricing.targetMargin || 0;
+            
+            // 販売価格が設定されている場合：粗利率を計算
+            const marginDisplay = document.getElementById(`margin-display-${productId}`);
+            if (marginDisplay) {
+                if (sellingPrice > 0) {
+                    const grossProfit = sellingPrice - cost;
+                    const marginRate = (grossProfit / sellingPrice * 100).toFixed(1);
+                    marginDisplay.style.display = 'block';
+                    marginDisplay.querySelector('div:nth-child(2)').textContent = `${marginRate}%`;
+                    marginDisplay.querySelector('div:nth-child(3)').textContent = `粗利額: ${fmt(grossProfit)}`;
+                } else {
+                    marginDisplay.style.display = 'none';
+                }
+            }
+            
+            // 目標粗利率が設定されている場合：最低販売価格を計算
+            const minPriceDisplay = document.getElementById(`min-price-display-${productId}`);
+            if (minPriceDisplay) {
+                if (targetMargin > 0 && targetMargin < 100) {
+                    const minPrice = cost / (1 - targetMargin / 100);
+                    const targetProfit = minPrice - cost;
+                    minPriceDisplay.style.display = 'block';
+                    minPriceDisplay.querySelector('div:nth-child(2)').textContent = fmt(minPrice);
+                    minPriceDisplay.querySelector('div:nth-child(3)').textContent = `目標粗利額: ${fmt(targetProfit)}`;
+                } else {
+                    minPriceDisplay.style.display = 'none';
+                }
+            }
+        }
+
+        function renderRecipeList(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const container = document.getElementById(`recipe-list-${productId}`);
+            if (!container) return;
+            
+            if (!product.recipe || product.recipe.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;"><p class="text-sm text-gray">材料が登録されていません</p></div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            product.recipe.forEach((item, index) => {
+                const material = materials.find(m => m.id === item.material_id);
+                if (!material) return;
+                
+                const activeIngredients = ingredients.filter(i => i.material_id === item.material_id && i.qty > 0);
+                
+                // 選択されているロット、またはデフォルトで最新のロット
+                let selectedIngredient = null;
+                if (item.ingredient_id) {
+                    selectedIngredient = ingredients.find(i => i.id === item.ingredient_id);
+                }
+                if (!selectedIngredient && activeIngredients.length > 0) {
+                    selectedIngredient = activeIngredients.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    // デフォルト選択をレシピに保存
+                    if (selectedIngredient) {
+                        item.ingredient_id = selectedIngredient.id;
+                    }
+                }
+                
+                let unitPrice = 0;
+                let unitText = 'g';
+                let lotOptions = '';
+                
+                if (activeIngredients.length === 0) {
+                    lotOptions = '<option value="">在庫なし</option>';
+                } else {
+                    activeIngredients.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(ing => {
+                        const ingUnitPrice = ing.price / ing.qty;
+                        const selected = item.ingredient_id === ing.id ? 'selected' : '';
+                        lotOptions += `<option value="${ing.id}" ${selected}>${esc(ing.lot_no)} (${fmtDec(ingUnitPrice)}/${ing.unit}, 在庫:${ing.qty}${ing.unit})</option>`;
+                    });
+                }
+                
+                if (selectedIngredient) {
+                    unitPrice = selectedIngredient.price / selectedIngredient.qty;
+                    unitText = selectedIngredient.unit;
+                }
+                
+                const itemCost = unitPrice * item.quantity;
+                
+                const div = document.createElement('div');
+                div.className = 'recipe-item';
+                div.innerHTML = `
+                    <div style="margin-bottom: 8px;">
+                        <strong>${esc(material.name)}</strong>
+                        <span class="badge badge-blue" style="margin-left: 8px;">${esc(material.code)}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div style="flex: 1; margin-right: 12px;">
+                            <label class="text-sm text-gray" style="display: block; margin-bottom: 4px;">使用ロット選択</label>
+                            <select class="table-input" onchange="updateRecipeLot('${productId}', ${index}, this.value)" style="width: 100%;">
+                                ${lotOptions}
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div>
+                                <label class="text-sm text-gray" style="display: block; margin-bottom: 4px;">使用量</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="number" class="table-input" style="width: 100px;" 
+                                        value="${item.quantity}" min="0" step="0.1"
+                                        onchange="updateRecipeQuantity('${productId}', ${index}, this.value)"
+                                        placeholder="数量">
+                                    <span style="width: 40px;">${unitText}</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <label class="text-sm text-gray" style="display: block; margin-bottom: 4px;">小計</label>
+                                <span style="font-weight: 600; color: #7d5d3a; font-size: 16px;">${fmtDec(itemCost)}</span>
+                            </div>
+                            <button class="btn btn-red btn-sm" onclick="removeRecipeItem('${productId}', ${index})" style="align-self: flex-end;">削除</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addRecipeItem(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (!product.recipe) product.recipe = [];
+            
+            const activeMaterials = materials.filter(m => m.status === 'active');
+            if (activeMaterials.length === 0) {
+                showToast('材料マスタが登録されていません', true);
+                return;
+            }
+            
+            product.recipe.push({ material_id: activeMaterials[0].id, quantity: 0, ingredient_id: null });
+            renderRecipeList(productId);
+            updateCostDisplay(productId);
+        }
+
+        function updateRecipeQuantity(productId, index, value) {
+            const product = products.find(p => p.id === productId);
+            if (!product || !product.recipe[index]) return;
+            
+            product.recipe[index].quantity = parseFloat(value) || 0;
+            updateCostDisplay(productId);
+            updatePricingDisplays(productId);
+        }
+
+        function updateRecipeLot(productId, index, ingredientId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || !product.recipe[index]) return;
+            
+            product.recipe[index].ingredient_id = ingredientId;
+            renderRecipeList(productId);
+            updateCostDisplay(productId);
+            updatePricingDisplays(productId);
+        }
+
+        function removeRecipeItem(productId, index) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            product.recipe.splice(index, 1);
+            renderRecipeList(productId);
+            updateCostDisplay(productId);
+        }
+
+        function updateCostDisplay(productId) {
+            const cost = calculateProductCost(productId);
+            const display = document.getElementById(`cost-display-${productId}`);
+            if (display) {
+                display.querySelector('.cost-value').textContent = fmtDec(cost);
+            }
+        }
+
+        function saveRecipe(productId) {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+            renderAll();
+            showToast('レシピを保存しました');
+        }
+
+        function showPresetSelector(productId) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">📋 レシピプリセット選択</div>
+                    <div class="modal-body">
+                        <div class="info-box" style="margin-bottom: 16px;">
+                            💡 プリセットを選択すると、現在のレシピが上書きされます
+                        </div>
+                        <div id="preset-list"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            
+            const presetList = document.getElementById('preset-list');
+            if (recipePresets.length === 0) {
+                presetList.innerHTML = '<div class="empty-state"><p class="text-sm text-gray">プリセットが登録されていません</p></div>';
+                return;
+            }
+            
+            recipePresets.forEach(preset => {
+                const div = document.createElement('div');
+                div.className = 'preset-card';
+                div.onclick = () => {
+                    applyPreset(productId, preset.id);
+                    modal.remove();
+                };
+                
+                let ingredientsList = '';
+                preset.recipe.forEach(item => {
+                    const material = materials.find(m => m.id === item.material_id);
+                    if (material) {
+                        ingredientsList += `<div class="text-sm text-gray">• ${esc(material.name)}: ${item.quantity}g</div>`;
+                    }
+                });
+                
+                div.innerHTML = `
+                    <div class="font-bold" style="margin-bottom: 8px;">${esc(preset.name)}</div>
+                    ${ingredientsList}
+                `;
+                presetList.appendChild(div);
+            });
+        }
+
+        function applyPreset(productId, presetId) {
+            const product = products.find(p => p.id === productId);
+            const preset = recipePresets.find(pr => pr.id === presetId);
+            if (!product || !preset) return;
+            
+            product.recipe = JSON.parse(JSON.stringify(preset.recipe));
+            renderRecipeList(productId);
+            updateCostDisplay(productId);
+            showToast('プリセットを適用しました');
+        }
+
+        function showRecipePresetManager() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">📋 レシピプリセット管理</div>
+                    <div class="modal-body">
+                        <div class="info-box" style="margin-bottom: 16px;">
+                            💡 よく使うレシピをプリセットとして保存できます。新製品追加時に素早く設定可能です。
+                        </div>
+                        <button class="btn btn-green btn-sm" onclick="showAddPresetModal()" style="margin-bottom: 16px;">+ プリセット追加</button>
+                        <div id="preset-manager-list"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">閉じる</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            renderPresetManagerList();
+        }
+
+        function renderPresetManagerList() {
+            const container = document.getElementById('preset-manager-list');
+            if (!container) return;
+            
+            if (recipePresets.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p class="text-sm text-gray">プリセットが登録されていません</p></div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            recipePresets.forEach(preset => {
+                const div = document.createElement('div');
+                div.className = 'product-card';
+                
+                let ingredientsList = '';
+                preset.recipe.forEach(item => {
+                    const material = materials.find(m => m.id === item.material_id);
+                    if (material) {
+                        ingredientsList += `<div class="text-sm text-gray">• ${esc(material.name)}: ${item.quantity}g</div>`;
+                    }
+                });
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-bold" style="margin-bottom: 8px;">${esc(preset.name)}</div>
+                            ${ingredientsList}
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-primary btn-sm" onclick="showEditPresetModal('${preset.id}')">編集</button>
+                            <button class="btn btn-red btn-sm" onclick="deletePreset('${preset.id}')">削除</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showAddPresetModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">新規プリセット作成</div>
+                    <div class="modal-body">
+                        <label class="form-label">プリセット名</label>
+                        <input type="text" class="modal-input" id="preset-name" placeholder="例: チョコチップクッキー（基本）">
+                        
+                        <label class="form-label">既存製品からコピー（オプション）</label>
+                        <select class="form-select" id="copy-from-product">
+                            <option value="">新規作成</option>
+                            ${products.filter(p => p.recipe && p.recipe.length > 0).map(p => 
+                                `<option value="${p.id}">${esc(p.name)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" onclick="createPreset()">作成</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            document.getElementById('preset-name').focus();
+        }
+
+        function createPreset() {
+            const name = document.getElementById('preset-name').value.trim();
+            const copyFromId = document.getElementById('copy-from-product').value;
+            
+            if (!name) {
+                showToast('プリセット名を入力してください', true);
+                return;
+            }
+            
+            let recipe = [];
+            if (copyFromId) {
+                const product = products.find(p => p.id === copyFromId);
+                if (product && product.recipe) {
+                    recipe = JSON.parse(JSON.stringify(product.recipe));
+                }
+            }
+            
+            recipePresets.push({
+                id: genId(),
+                name: name,
+                recipe: recipe
+            });
+            
+            document.querySelector('.modal-overlay').remove();
+            showRecipePresetManager();
+            showToast('プリセットを作成しました');
+        }
+
+        function showEditPresetModal(presetId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">プリセット編集</div>
+                    <div class="modal-body">
+                        <label class="form-label">プリセット名</label>
+                        <input type="text" class="modal-input" id="edit-preset-name" value="${esc(preset.name)}">
+                        
+                        <label class="form-label" style="margin-top: 16px;">レシピ</label>
+                        <div id="edit-preset-recipe-list"></div>
+                        <button class="btn btn-primary btn-sm" onclick="addPresetRecipeItem('${presetId}')" style="margin-top: 8px;">+ 材料を追加</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" onclick="savePresetEdit('${presetId}')">保存</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            document.getElementById('edit-preset-name').focus();
+            renderEditPresetRecipeList(presetId);
+        }
+
+        function renderEditPresetRecipeList(presetId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            const container = document.getElementById('edit-preset-recipe-list');
+            if (!container) return;
+            
+            if (!preset.recipe || preset.recipe.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;"><p class="text-sm text-gray">材料が登録されていません</p></div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            const activeMaterials = materials.filter(m => m.status === 'active');
+            
+            preset.recipe.forEach((item, index) => {
+                const material = materials.find(m => m.id === item.material_id);
+                
+                const div = document.createElement('div');
+                div.className = 'recipe-item';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <select class="table-input" style="flex: 1; margin-right: 12px;" onchange="updatePresetRecipeMaterial('${presetId}', ${index}, this.value)">
+                            ${activeMaterials.map(mat => 
+                                `<option value="${mat.id}" ${mat.id === item.material_id ? 'selected' : ''}>${esc(mat.name)}</option>`
+                            ).join('')}
+                        </select>
+                        <input type="number" class="table-input" style="width: 100px;" 
+                            value="${item.quantity}" min="0" step="0.1"
+                            onchange="updatePresetRecipeQuantity('${presetId}', ${index}, this.value)"
+                            placeholder="数量">
+                        <span style="width: 40px; margin-left: 8px;">g</span>
+                        <button class="btn btn-red btn-sm" onclick="removePresetRecipeItem('${presetId}', ${index})" style="margin-left: 12px;">削除</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addPresetRecipeItem(presetId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            if (!preset.recipe) preset.recipe = [];
+            
+            const activeMaterials = materials.filter(m => m.status === 'active');
+            if (activeMaterials.length === 0) {
+                showToast('材料マスタが登録されていません', true);
+                return;
+            }
+            
+            preset.recipe.push({ material_id: activeMaterials[0].id, quantity: 0 });
+            renderEditPresetRecipeList(presetId);
+        }
+
+        function updatePresetRecipeMaterial(presetId, index, materialId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset || !preset.recipe[index]) return;
+            
+            preset.recipe[index].material_id = materialId;
+            renderEditPresetRecipeList(presetId);
+        }
+
+        function updatePresetRecipeQuantity(presetId, index, value) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset || !preset.recipe[index]) return;
+            
+            preset.recipe[index].quantity = parseFloat(value) || 0;
+        }
+
+        function removePresetRecipeItem(presetId, index) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            preset.recipe.splice(index, 1);
+            renderEditPresetRecipeList(presetId);
+        }
+
+        function savePresetEdit(presetId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            const newName = document.getElementById('edit-preset-name').value.trim();
+            if (!newName) {
+                showToast('プリセット名を入力してください', true);
+                return;
+            }
+            
+            preset.name = newName;
+            
+            document.querySelector('.modal-overlay').remove();
+            showRecipePresetManager();
+            showToast('プリセットを更新しました');
+        }
+
+        function deletePreset(presetId) {
+            const preset = recipePresets.find(p => p.id === presetId);
+            if (!preset) return;
+            
+            showConfirm('プリセット削除', `「${preset.name}」を削除しますか？`, () => {
+                recipePresets = recipePresets.filter(p => p.id !== presetId);
+                renderPresetManagerList();
+                showToast('プリセットを削除しました');
+            });
+        }
+
+        function checkExpiryAlerts() {
+            const alertsDiv = document.getElementById('expiry-alerts');
+            if (!alertsDiv) return;
+            
+            const today = new Date();
+            const warningDate = new Date(today);
+            warningDate.setDate(warningDate.getDate() + 30);
+            const cautionDate = new Date(today);
+            cautionDate.setDate(cautionDate.getDate() + 60);
+            
+            const alerts = [];
+            
+            ingredients.forEach(ing => {
+                if (!ing.expiry) return;
+                const expiry = new Date(ing.expiry);
+                const mat = materials.find(m => m.id === ing.material_id);
+                if (!mat) return;
+                
+                if (expiry < today) {
+                    alerts.push({ level: 'expired', ingredient: ing, material: mat, days: Math.floor((today - expiry) / (1000 * 60 * 60 * 24)) });
+                } else if (expiry <= warningDate) {
+                    alerts.push({ level: 'warning', ingredient: ing, material: mat, days: Math.floor((expiry - today) / (1000 * 60 * 60 * 24)) });
+                } else if (expiry <= cautionDate) {
+                    alerts.push({ level: 'caution', ingredient: ing, material: mat, days: Math.floor((expiry - today) / (1000 * 60 * 60 * 24)) });
+                }
+            });
+            
+            if (alerts.length === 0) {
+                alertsDiv.innerHTML = '';
+                return;
+            }
+            
+            alerts.sort((a, b) => a.days - b.days);
+            
+            let html = '<div class="alert-box"><h3>⚠️ 賞味期限アラート</h3>';
+            alerts.forEach(alert => {
+                let message = '';
+                let badgeClass = '';
+                if (alert.level === 'expired') {
+                    message = `期限切れ(${alert.days}日超過)`;
+                    badgeClass = 'badge-red';
+                } else if (alert.level === 'warning') {
+                    message = `期限まであと${alert.days}日`;
+                    badgeClass = 'badge-red';
+                } else {
+                    message = `期限まであと${alert.days}日`;
+                    badgeClass = 'badge-yellow';
+                }
+                html += `<div class="alert-item">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="badge ${badgeClass}">${message}</span>
+                            <strong>${esc(alert.material.name)}</strong> (ロット: ${esc(alert.ingredient.lot_no)})
+                            - 賞味期限: ${alert.ingredient.expiry}
+                        </div>
+                        <button class="btn btn-red btn-sm" onclick="markAsUsedUp('${alert.ingredient.id}')">使い切りにする</button>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            alertsDiv.innerHTML = html;
+        }
+
+        function toggleSection(name) {
+            const c = document.getElementById(`${name}-content`);
+            const ch = document.getElementById(`${name}-chevron`);
+            if (!c || !ch) return;
+            sections[name] = !sections[name];
+            c.classList.toggle('hidden', !sections[name]);
+            ch.textContent = sections[name] ? '▼' : '▶';
+        }
+
+        function showAddProductModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">新製品追加</div>
+                    <div class="modal-body">
+                        <label class="form-label">製品名</label>
+                        <input type="text" class="modal-input" id="product-name" placeholder="例: チョコチップクッキー">
+                        <label class="form-label">製品コード (SKU)</label>
+                        <input type="text" class="modal-input" id="product-sku" placeholder="例: CK-CHOCO-001">
+                        
+                        <label class="form-label">レシピプリセット（オプション）</label>
+                        <select class="form-select" id="product-preset">
+                            <option value="">後で設定</option>
+                            ${recipePresets.map(preset => 
+                                `<option value="${preset.id}">${esc(preset.name)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
+                        <button class="btn btn-green" id="add-product-btn">追加</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-container').appendChild(modal);
+            const nameInput = document.getElementById('product-name');
+            if (nameInput) nameInput.focus();
+            
+            const addBtn = document.getElementById('add-product-btn');
+            if (addBtn) {
+                addBtn.onclick = () => {
+                    const name = document.getElementById('product-name').value.trim();
+                    const sku = document.getElementById('product-sku').value.trim().toUpperCase();
+                    const presetId = document.getElementById('product-preset').value;
+                    
+                    if (!name || !sku) {
+                        showToast('製品名とSKUを入力してください', true);
+                        return;
+                    }
+                    
+                    const id = genId();
+                    const newProduct = { id, sku, name, recipe: [] };
+                    
+                    if (presetId) {
+                        const preset = recipePresets.find(p => p.id === presetId);
+                        if (preset) {
+                            newProduct.recipe = JSON.parse(JSON.stringify(preset.recipe));
+                        }
+                    }
+                    
+                    products.push(newProduct);
+                    modal.remove();
+                    renderAll();
+                    showToast('製品を追加しました');
+                };
+            }
+        }
+
+        function deleteProduct(id) {
+            const p = products.find(pr => pr.id === id);
+            if (!p) return;
+            showConfirm('製品削除', `「${p.name}」を削除しますか?\n\nこの操作は取り消せません。`, () => {
+                products = products.filter(pr => pr.id !== id);
+                renderAll();
+                showToast('製品を削除しました');
+            });
+        }
+
+        function toggleMaterialMaster() {
+            const s = document.getElementById('material-master-section');
+            if (s) { 
+                s.classList.toggle('hidden'); 
+                if (!s.classList.contains('hidden')) renderMaterials(); 
+            }
+        }
+
+        function toggleSuspendedMaterials() {
+            showSuspendedMaterials = !showSuspendedMaterials;
+            const toggleBtn = document.getElementById('suspended-materials-toggle');
+            if (toggleBtn) {
+                toggleBtn.textContent = showSuspendedMaterials ? '保留材料を非表示' : '保留材料を表示';
+            }
+            renderMaterials();
+        }
+
+        function addMaterial() {
+            materials.push({ id: genId(), name: '', code: '', type: 'material', category: '', productName: '', status: 'active' });
+            renderMaterials();
+        }
+
+        function updateMaterial(id, field, value) {
+            const m = materials.find(mat => mat.id === id);
+            if (m) {
+                const old = m.code;
+                m[field] = value;
+                if (field === 'code' && value !== old) {
+                    ingredients.filter(i => i.material_id === id).forEach(i => { 
+                        i.material_code = value; 
+                        if (value) i.lot_no = genLot(value); 
+                    });
+                    renderAll();
+                }
+            }
+        }
+
+        function suspendMaterial(id) {
+            const m = materials.find(mat => mat.id === id);
+            if (!m) return;
+            showConfirm('材料保留', `材料「${m.name}」を保留にしますか?\n保留にすると新規仕入れができなくなります。`, () => {
+                m.status = 'suspended';
+                renderMaterials();
+                showToast('材料を保留にしました');
+            });
+        }
+
+        function activateMaterial(id) {
+            const m = materials.find(mat => mat.id === id);
+            if (!m) return;
+            showConfirm('材料再開', `材料「${m.name}」を再アクティブ化しますか?`, () => {
+                m.status = 'active';
+                renderMaterials();
+                showToast('材料を再アクティブ化しました');
+            });
+        }
+
+        function deleteMaterial(id) {
+            const m = materials.find(mat => mat.id === id);
+            if (!m) return;
+            const ri = ingredients.filter(i => i.material_id === id);
+            const ru = usedUpIngredients.filter(i => i.material_id === id);
+            
+            let warningMsg = `材料「${m.name}」を完全に削除しますか?\n\n`;
+            if (ri.length > 0) warningMsg += `・アクティブな仕入れデータ: ${ri.length}件\n`;
+            if (ru.length > 0) warningMsg += `・使い切り履歴: ${ru.length}件\n`;
+            warningMsg += `\nこれらのデータもすべて削除されます。\nこの操作は取り消せません。`;
+            
+            showConfirm('材料削除', warningMsg, () => {
+                materials = materials.filter(mat => mat.id !== id);
+                ingredients = ingredients.filter(i => i.material_id !== id);
+                usedUpIngredients = usedUpIngredients.filter(i => i.material_id !== id);
+                renderAll();
+                showToast('材料を削除しました');
+            });
+        }
+
+        function addIngredient() {
+            const activeMaterials = materials.filter(m => m.status === 'active');
+            if (activeMaterials.length === 0) { 
+                showToast('先にアクティブな材料マスタを登録してください', true);
+                return; 
+            }
+            const fm = activeMaterials[0];
+            ingredients.push({ 
+                id: genId(), 
+                material_id: fm.id, 
+                material_code: fm.code, 
+                lot_no: genLot(fm.code), 
+                date: new Date().toISOString().split('T')[0], 
+                qty: 0, 
+                price: 0, 
+                unit: fm.type === 'packaging' ? '枚' : 'g', 
+                supplier: '', 
+                expiry: '' 
+            });
+            renderAll();
+            showToast('仕入れを追加しました');
+        }
+
+        function updateIngredient(id, field, value) {
+            const ing = ingredients.find(i => i.id === id);
+            if (!ing) return;
+            if (field === 'qty' || field === 'price') {
+                ing[field] = parseFloat(value) || 0;
+            } else if (field === 'material_id') {
+                ing[field] = value;
+                const m = materials.find(mat => mat.id === value);
+                if (m) { 
+                    ing.material_code = m.code; 
+                    ing.lot_no = genLot(m.code); 
+                    ing.unit = m.type === 'packaging' ? '枚' : 'g'; 
+                }
+            } else {
+                ing[field] = value;
+            }
+            renderAll();
+        }
+
+        function deleteIngredient(id) {
+            showConfirm('仕入れ削除', 'この仕入れデータを削除しますか?\n\nこの操作は取り消せません。', () => {
+                ingredients = ingredients.filter(i => i.id !== id);
+                renderAll();
+                showToast('仕入れデータを削除しました');
+            });
+        }
+
+        function toggleUsedUpSection() {
+            showUsedUp = !showUsedUp;
+            const section = document.getElementById('used-up-section');
+            const toggleText = document.getElementById('used-up-toggle-text');
+            if (section && toggleText) {
+                section.classList.toggle('hidden', !showUsedUp);
+                toggleText.textContent = showUsedUp ? '📜 使い切り履歴を非表示' : '📜 使い切り履歴を表示';
+                if (showUsedUp) renderUsedUp();
+            }
+        }
+
+        function markAsUsedUp(id) {
+            const ing = ingredients.find(i => i.id === id);
+            if (!ing) return;
+            showConfirm('使い切り', `「${ing.lot_no}」を使い切りにしますか?\n使い切り履歴に移動します。`, () => {
+                ing.used_up_date = new Date().toISOString().split('T')[0];
+                usedUpIngredients.push(ing);
+                ingredients = ingredients.filter(i => i.id !== id);
+                renderAll();
+                showToast('使い切りにしました');
+            });
+        }
+
+        function restoreFromUsedUp(id) {
+            const ing = usedUpIngredients.find(i => i.id === id);
+            if (!ing) return;
+            showConfirm('復元', `「${ing.lot_no}」をアクティブに戻しますか?`, () => {
+                delete ing.used_up_date;
+                ingredients.push(ing);
+                usedUpIngredients = usedUpIngredients.filter(i => i.id !== id);
+                renderAll();
+                showToast('アクティブに復元しました');
+            });
+        }
+
+        function deleteUsedUp(id) {
+            showConfirm('履歴削除', 'この使い切り履歴を完全に削除しますか?\n\nこの操作は取り消せません。', () => {
+                usedUpIngredients = usedUpIngredients.filter(i => i.id !== id);
+                renderUsedUp();
+                showToast('使い切り履歴を削除しました');
+            });
+        }
+
+        function exportData() {
+            const data = { 
+                products, 
+                materials, 
+                ingredients, 
+                usedUpIngredients,
+                recipePresets,
+                exportDate: new Date().toISOString() 
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cookie-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('データをエクスポートしました');
+        }
+
+        function importData(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                try {
+                    const d = JSON.parse(ev.target.result);
+                    showConfirm('データインポート', '現在のデータを上書きしますか?', () => {
+                        products = d.products || [];
+                        materials = d.materials || [];
+                        ingredients = d.ingredients || [];
+                        usedUpIngredients = d.usedUpIngredients || [];
+                        recipePresets = d.recipePresets || [];
+                        renderAll();
+                        showToast('データをインポートしました');
+                    });
+                } catch (err) {
+                    showToast('ファイルの読み込みに失敗しました', true);
+                    console.error('Import error:', err);
+                }
+            };
+            r.readAsText(f);
+            e.target.value = '';
+        }
+
+        function renderAll() { 
+            checkExpiryAlerts();
+            renderDashboard(); 
+            renderMaterials(); 
+            renderIngredients();
+            if (showUsedUp) renderUsedUp();
+        }
+
+        function renderDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            document.getElementById('total-batches').textContent = 0;
+            document.getElementById('total-materials').textContent = materials.filter(m => m.status === 'active').length;
+            document.getElementById('active-ingredients').textContent = ingredients.length;
+            
+            const tb = document.getElementById('dashboard-table-body');
+            if (!tb) return;
+            tb.innerHTML = '';
+            
+            products.forEach(p => {
+                const hasRecipe = p.recipe && p.recipe.length > 0;
+                const cost = hasRecipe ? calculateProductCost(p.id) : 0;
+                const recipeStatus = hasRecipe ? 
+                    `<span class="badge badge-green">設定済み (${p.recipe.length}種)</span>` : 
+                    `<span class="badge badge-gray">未設定</span>`;
+                const costDisplay = hasRecipe && cost > 0 ? 
+                    `<span class="font-bold text-green">${fmtDec(cost)}</span>` : 
+                    `<span class="text-gray">—</span>`;
+                
+                // 収益情報の表示
+                let profitInfo = '<span class="text-gray text-sm">未設定</span>';
+                if (p.pricing) {
+                    if (p.pricing.sellingPrice > 0) {
+                        const grossProfit = p.pricing.sellingPrice - cost;
+                        const marginRate = cost > 0 ? (grossProfit / p.pricing.sellingPrice * 100).toFixed(1) : 0;
+                        profitInfo = `<div class="text-sm">
+                            <div>売価: <strong>${fmt(p.pricing.sellingPrice)}</strong></div>
+                            <div class="text-green">粗利率: <strong>${marginRate}%</strong> (${fmt(grossProfit)})</div>
+                        </div>`;
+                    } else if (p.pricing.targetMargin > 0) {
+                        const minPrice = cost > 0 ? cost / (1 - p.pricing.targetMargin / 100) : 0;
+                        profitInfo = `<div class="text-sm">
+                            <div>目標: <strong>${p.pricing.targetMargin}%</strong></div>
+                            <div class="text-orange">最低売価: <strong>${fmt(minPrice)}</strong></div>
+                        </div>`;
+                    }
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <span class="clickable-product" onclick="showRecipeEditor('${p.id}')">${esc(p.name)}</span>
+                    </td>
+                    <td class="text-sm text-gray">${esc(p.sku)}</td>
+                    <td>${recipeStatus}</td>
+                    <td class="text-right">${costDisplay}</td>
+                    <td>${profitInfo}</td>
+                    <td class="text-center">
+                        <button class="btn btn-red btn-sm" onclick="deleteProduct('${p.id}')">削除</button>
+                    </td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        function renderMaterials() {
+            const tb = document.getElementById('materials-master-table');
+            if (!tb) return;
+            tb.innerHTML = '';
+            
+            const displayMaterials = showSuspendedMaterials 
+                ? materials 
+                : materials.filter(m => m.status !== 'suspended');
+            
+            if (displayMaterials.length === 0) { 
+                tb.innerHTML = '<tr><td colspan="7" class="text-center text-gray" style="padding:20px;">材料マスタが登録されていません</td></tr>'; 
+                return; 
+            }
+            
+            displayMaterials.forEach(m => {
+                const isSuspended = m.status === 'suspended';
+                const rowClass = isSuspended ? 'row-suspended' : '';
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                
+                const statusBadge = isSuspended 
+                    ? '<span class="badge badge-gray">保留</span>' 
+                    : '<span class="badge badge-green">アクティブ</span>';
+                
+                const actionButtons = isSuspended
+                    ? `<button class="btn btn-green btn-sm" onclick="activateMaterial('${m.id}')">再開</button>
+                       <button class="btn btn-red btn-sm" onclick="deleteMaterial('${m.id}')">削除</button>`
+                    : `<button class="btn btn-gray btn-sm" onclick="suspendMaterial('${m.id}')">保留</button>
+                       <button class="btn btn-red btn-sm" onclick="deleteMaterial('${m.id}')">削除</button>`;
+                
+                tr.innerHTML = `<td><input type="text" class="table-input" value="${esc(m.name || '')}" placeholder="材料名" onchange="updateMaterial('${m.id}', 'name', this.value)" ${isSuspended ? 'disabled' : ''}></td><td><input type="text" class="table-input" value="${esc(m.code || '')}" placeholder="CODE" maxlength="6" style="text-transform:uppercase;" onchange="updateMaterial('${m.id}', 'code', this.value.toUpperCase())" ${isSuspended ? 'disabled' : ''}></td><td><input type="text" class="table-input" value="${esc(m.category || '')}" placeholder="例: 粉類" onchange="updateMaterial('${m.id}', 'category', this.value)" ${isSuspended ? 'disabled' : ''}></td><td><input type="text" class="table-input" value="${esc(m.productName || '')}" placeholder="例: 日清カメリヤ" onchange="updateMaterial('${m.id}', 'productName', this.value)" ${isSuspended ? 'disabled' : ''}></td><td><select class="table-input" onchange="updateMaterial('${m.id}', 'type', this.value)" ${isSuspended ? 'disabled' : ''}><option value="material" ${m.type === 'material' ? 'selected' : ''}>原材料</option><option value="packaging" ${m.type === 'packaging' ? 'selected' : ''}>包材</option></select></td><td class="text-center">${statusBadge}</td><td><div class="flex gap-2">${actionButtons}</div></td>`;
+                tb.appendChild(tr);
+            });
+        }
+
+        function renderIngredients() {
+            const tb = document.getElementById('ingredients-table');
+            const noi = document.getElementById('no-ingredients');
+            if (!tb || !noi) return;
+            
+            if (ingredients.length === 0) { 
+                tb.innerHTML = ''; 
+                noi.classList.remove('hidden'); 
+                return; 
+            }
+            noi.classList.add('hidden');
+            tb.innerHTML = '';
+            
+            const activeMaterials = materials.filter(m => m.status === 'active');
+            
+            ingredients.forEach(ing => {
+                const m = materials.find(mat => mat.id === ing.material_id);
+                const up = ing.qty > 0 ? ing.price / ing.qty : 0;
+                const tl = m?.type === 'packaging' ? '[包材]' : '[原材料]';
+                
+                let expiryHtml = '';
+                if (ing.expiry) {
+                    const today = new Date();
+                    const expiry = new Date(ing.expiry);
+                    const daysUntil = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (daysUntil < 0) {
+                        expiryHtml = `<input type="date" class="table-input expiry-warning" value="${ing.expiry}" onchange="updateIngredient('${ing.id}', 'expiry', this.value)">`;
+                    } else if (daysUntil <= 30) {
+                        expiryHtml = `<input type="date" class="table-input expiry-warning" value="${ing.expiry}" onchange="updateIngredient('${ing.id}', 'expiry', this.value)">`;
+                    } else if (daysUntil <= 60) {
+                        expiryHtml = `<input type="date" class="table-input expiry-caution" value="${ing.expiry}" onchange="updateIngredient('${ing.id}', 'expiry', this.value)">`;
+                    } else {
+                        expiryHtml = `<input type="date" class="table-input" value="${ing.expiry}" onchange="updateIngredient('${ing.id}', 'expiry', this.value)">`;
+                    }
+                } else {
+                    expiryHtml = `<input type="date" class="table-input" value="" onchange="updateIngredient('${ing.id}', 'expiry', this.value)">`;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${tl}<select class="table-input" onchange="updateIngredient('${ing.id}', 'material_id', this.value)">${activeMaterials.map(mat => `<option value="${mat.id}" ${mat.id === ing.material_id ? 'selected' : ''}>${esc(mat.name)} (${esc(mat.code)})</option>`).join('')}</select></td><td><span class="badge badge-blue font-mono">${esc(ing.lot_no || '自動生成')}</span></td><td><input type="date" class="table-input" value="${ing.date}" onchange="updateIngredient('${ing.id}', 'date', this.value)"></td><td><input type="number" class="table-input" value="${ing.qty}" min="0" step="0.01" onchange="updateIngredient('${ing.id}', 'qty', this.value)"></td><td><select class="table-input" onchange="updateIngredient('${ing.id}', 'unit', this.value)"><option value="g" ${ing.unit === 'g' ? 'selected' : ''}>g</option><option value="kg" ${ing.unit === 'kg' ? 'selected' : ''}>kg</option><option value="mL" ${ing.unit === 'mL' ? 'selected' : ''}>mL</option><option value="L" ${ing.unit === 'L' ? 'selected' : ''}>L</option><option value="個" ${ing.unit === '個' ? 'selected' : ''}>個</option><option value="枚" ${ing.unit === '枚' ? 'selected' : ''}>枚</option></select></td><td><input type="number" class="table-input" value="${ing.price}" min="0" step="0.01" onchange="updateIngredient('${ing.id}', 'price', this.value)"></td><td class="text-right"><span class="unit-price">${fmtDec(up)}/${esc(ing.unit)}</span></td><td><input type="text" class="table-input" value="${esc(ing.supplier)}" onchange="updateIngredient('${ing.id}', 'supplier', this.value)"></td><td>${expiryHtml}</td><td><div class="flex gap-2"><button class="btn btn-yellow btn-sm" onclick="markAsUsedUp('${ing.id}')">使い切り</button><button class="btn btn-red btn-sm" onclick="deleteIngredient('${ing.id}')">削除</button></div></td>`;
+                tb.appendChild(tr);
+            });
+        }
+
+        function renderUsedUp() {
+            const tb = document.getElementById('used-up-table');
+            const nou = document.getElementById('no-used-up');
+            if (!tb || !nou) return;
+            
+            if (usedUpIngredients.length === 0) { 
+                tb.innerHTML = ''; 
+                nou.classList.remove('hidden'); 
+                return; 
+            }
+            
+            nou.classList.add('hidden');
+            tb.innerHTML = '';
+            
+            usedUpIngredients.forEach(ing => {
+                const m = materials.find(mat => mat.id === ing.material_id);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${m ? esc(m.name) : '不明'}</td><td><span class="badge badge-gray font-mono">${esc(ing.lot_no || '-')}</span></td><td>${ing.date}</td><td>${ing.qty} ${esc(ing.unit)}</td><td>${esc(ing.unit)}</td><td>${fmt(ing.price)}</td><td>${esc(ing.supplier)}</td><td>${ing.used_up_date || '-'}</td><td><div class="flex gap-2"><button class="btn btn-primary btn-sm" onclick="restoreFromUsedUp('${ing.id}')">復元</button><button class="btn btn-red btn-sm" onclick="deleteUsedUp('${ing.id}')">削除</button></div></td>`;
+                tb.appendChild(tr);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initData();
+            renderAll();
+            const imp = document.getElementById('import-file');
+            if (imp) imp.addEventListener('change', importData);
+        });
+    </script>
+</body>
+</html>

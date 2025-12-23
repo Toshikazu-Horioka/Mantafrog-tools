@@ -1,0 +1,9 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/cdk-app.ts",
+  "context": {
+    "@aws-cdk/aws-apigatewayv2:AuthorizerIsOptional": true,
+    "@aws-cdk/aws-apigatewayv2:HttpDefaultAuthorizerPayloadVersion": "2.0",
+    "@aws-cdk/aws-apigatewayv2:WebSocketDefaultAuthorizerPayloadVersion": "2.0"
+  }
+}
+
